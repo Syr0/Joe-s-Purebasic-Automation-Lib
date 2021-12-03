@@ -3,6 +3,17 @@ UsePNGImageEncoder()
 ExamineDesktops()
 
 ;{ Mouse Input Simulation
+Procedure Mouse_GetXPosition()
+  GetCursorPos_(Mouse.POINT)
+  ProcedureReturn Mouse\x
+EndProcedure
+Procedure Mouse_GetYPosition()
+  GetCursorPos_(Mouse.POINT)
+  ProcedureReturn Mouse\y
+EndProcedure
+Procedure Mouse_SetPosition(x,y)
+  SetCursorPos_(x,y)
+EndProcedure
 Procedure Mouse_LClickOnPosition(x,y)
   SetCursorPos_(x,y)
   Delay(20)
@@ -1164,7 +1175,8 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1163
-; Folding = AAAAAAAAAAAA5
+; CursorPosition = 60
+; FirstLine = 10
+; Folding = BAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP

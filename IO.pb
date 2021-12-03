@@ -1224,8 +1224,8 @@ Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
     hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, 0, PID)
   EndIf
   If hProcess <= 0
-    Debug "Canot open Process"
-    ProcedureReturn-1
+    Debug "Cannot open Process"
+    ProcedureReturn -1
   EndIf
     
   If Len(moduleAddress$) > 0
@@ -1254,7 +1254,8 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1179
-; Folding = AAAAAAAAAAAAAk
+; CursorPosition = 1227
+; FirstLine = 21
+; Folding = AAAAAAAAAAAAA1
 ; EnableThread
 ; EnableXP

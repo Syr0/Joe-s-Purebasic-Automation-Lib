@@ -1152,7 +1152,6 @@ Procedure FindHwndByPart(Text$)
       title.s = Space(512)
       GetWindowText_(hWnd, @title, 512)
       If FindString(title,Text$)
-        Debug title
         ProcedureReturn hwnd
       EndIf
     EndIf
@@ -1167,7 +1166,87 @@ EndProcedure
 Procedure MaxWindow(hwnd)
   SetWindowPos_(hwnd,0,-8,-31,DesktopWidth(0)+16,DesktopHeight(0)-2,0)
 EndProcedure
+Procedure TitleToHwnd(Title.s)
+  ProcedureReturn FindWindow_(0,Title)
+EndProcedure
+Procedure HwndToPID(hwnd)
+  PID.i
+  GetWindowThreadProcessId_(hwnd, @PID)
+  ProcedureReturn PID
+EndProcedure
 ;}
+
+;{ Process Memory Read
+
+Procedure.i GetModule(ProcessId.l, ModuleName.s)
+  kernel32=OpenLibrary(#PB_Any, "kernel32.dll")
+  ;Handle für externen Prozess 
+  Protected snapShot.i
+  ;Struktur für die Eigenschaften eines Moduls
+  Protected Me32.MODULEENTRY32
+   ;Wenn die Library "kernel32.dll" geladen wurden
+   If kernel32
+     ;Rufe die Funktion ToolHelp mit der ProcessID auf. Gibt den Handle auf die Module der ProcessID
+     snapShot=CallFunction(kernel32, "CreateToolhelp32Snapshot", #TH32CS_SNAPMODULE, ProcessId)
+     ;falls erfolgreich
+     If snapShot
+       ;Bereite eine Struktur des Typs Moduleentry32 vor um die einzelnen Module nacheinander da reinzuschreiben
+       ;Die Größe der Struktur wird in der Struktur festgehalten (Windows-eigen)
+       Me32\dwSize=SizeOf(MODULEENTRY32)
+       ;Belade die Struktur mit dem ersten Modul des Prozesses
+       If CallFunction(kernel32, "Module32First", snapShot, @Me32)
+         ;Werte den Modulnamen aus
+         Repeat
+           ;Lese String aus dem Speicherbereich Me32\szModule bis zur Nullterminierung (-1) aks ASCCI
+           Protected moduleName$=PeekS(@Me32\szModule, -1, #PB_Ascii)
+           ;Ist der String der gesuchten Modulnamen?
+           If moduleName$=ModuleName
+             ;Falls ja, abbruch und Baseaddresse aus der Struktur auslesen und returnen
+             CloseLibrary(kernel32)
+             ProcedureReturn Me32\modBaseAddr
+           EndIf
+            ;Sonst: Nächstes Modul bis es kein Nächstes mehr gibt.
+         Until Not CallFunction(kernel32, "Module32Next", snapShot, @Me32)
+       EndIf
+       ;Alle Module wurden durchsucht / es wurde das richtige gefunden. Jetzt den Funktionshandle freigaben (max 4048 pro Programm)
+       CloseHandle_(snapShot)
+     EndIf
+   EndIf
+   CloseLibrary(kernel32)
+   ;Wenn oben keine Baseadresse ermittelt werden konnte, gebe Null zurück
+   ProcedureReturn 0
+ EndProcedure
+ 
+Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
+  ;Wenn der Speicher einer DLL angehört statt dem eigentlichen Prozess
+  ;ModuleName$ z.b. "mono.dll"
+  If hProcess<=0
+    hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, 0, PID)
+  EndIf
+  If hProcess <= 0
+    Debug "Canot open Process"
+    ProcedureReturn-1
+  EndIf
+    
+  If Len(moduleAddress$) > 0
+    moduleAddress=GetModule(PID, ModuleName$)
+  EndIf
+    
+  FirstElement(Offsets())
+  address = moduleAddress+Offsets() ; Nicht getestet, sollte klappen
+  Repeat
+    ReadProcessMemory_(hProcess, address , @address, 8, #IGNORE)
+    If Not NextElement(Offsets())
+      Break
+    EndIf
+  ForEver
+  
+  CloseHandle_(hProcess)
+  ProcedureReturn PeekL(@adresse)
+EndProcedure
+
+;}
+
 
 ; CompilerIf Not #PB_Compiler_IsIncludeFile
 ;   Debug "Nutze mich nur per include"
@@ -1175,8 +1254,7 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 60
-; FirstLine = 10
-; Folding = BAAAAAAAAAAAA-
+; CursorPosition = 1179
+; Folding = AAAAAAAAAAAAAk
 ; EnableThread
 ; EnableXP

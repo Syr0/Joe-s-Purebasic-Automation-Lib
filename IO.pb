@@ -33,12 +33,12 @@ Procedure Mouse_PushAndRelease(Code)
   keybd_event_(Code, 0, #KEYEVENTF_KEYUP,0)
 EndProcedure
 Procedure Mouse_LClickRelease()
- mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
+  mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
 EndProcedure
 Procedure Mouse_LClickPush(Delay = 0)
-   Delay(delay)
-   mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
-   Delay(delay)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
+  Delay(delay)
 EndProcedure
 Procedure Mouse_LClick(Delay = 0)
   mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
@@ -51,12 +51,12 @@ Procedure Mouse_RClick(Delay = 0)
   mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
 EndProcedure
 Procedure Mouse_RClickRelease()
- mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
+  mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
 EndProcedure
 Procedure Mouse_RClickPush(Delay = 0)
-   Delay(delay)
-   mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
-   Delay(delay)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
+  Delay(delay)
 EndProcedure
 Procedure Mouse_wheelUp()
   in.Input
@@ -116,10 +116,10 @@ Procedure Colorpick (image, *Position.POINT)
     ProcedureReturn -1
   EndIf
   
-    StartDrawing(ImageOutput(image))
-    color = Point(*Position\x,*Position\y)
-    StopDrawing()
-    ProcedureReturn color
+  StartDrawing(ImageOutput(image))
+  color = Point(*Position\x,*Position\y)
+  StopDrawing()
+  ProcedureReturn color
 EndProcedure
 Procedure PixelPatternCheck(image,List Pixels.Pixels())
   StartDrawing(ImageOutput(image))
@@ -148,7 +148,7 @@ Procedure PixelPatternThresholdCheck(image,List Pixels.Pixels(),Threshold)
   ProcedureReturn 1
 EndProcedure
 Procedure.i FindImageColorDetail(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,BlueMax,List P.POINT())
-StartDrawing(ImageOutput(image))
+  StartDrawing(ImageOutput(image))
   For x = 0 To ImageWidth(image)-1
     For y = 0 To ImageHeight(image)-1
       c = Point(x,y)
@@ -162,11 +162,11 @@ StartDrawing(ImageOutput(image))
       EndIf
     Next
   Next
-StopDrawing()
-ProcedureReturn 0
+  StopDrawing()
+  ProcedureReturn 0
 EndProcedure
 Procedure.i FindImageColor(image,Color,Threshold,List P.POINT())
-StartDrawing(ImageOutput(image))
+  StartDrawing(ImageOutput(image))
   For x = 0 To ImageWidth(image)-1
     For y = 0 To ImageHeight(image)-1
       c = Point(x,y)
@@ -188,7 +188,7 @@ EndProcedure
 Procedure DownloadTesseract()
   Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.0.0-alpha.20210506.exe"
   DownloadSize = 53209536
-
+  
   Download = ReceiveHTTPFile(Downloadlink, GetTemporaryDirectory()+"TesseractInstaller.exe",#PB_HTTP_Asynchronous)
   Progresswindow = OpenWindow(#PB_Any,DesktopWidth(0)/2-100,200,200,40,"Tesseract Installation",#PB_Window_BorderLess)
   SmartWindowRefresh(Progresswindow,1)
@@ -205,7 +205,7 @@ Procedure DownloadTesseract()
     If Progress = #PB_HTTP_Failed
       Goto FailedDownload
     EndIf
-   
+    
     CloseWindow(Progresswindow)
   Else
     FailedDownload:
@@ -329,7 +329,7 @@ Procedure.s SingleOCR(image,x,y,w,h)
   ;Bildausschnitt
   ocrimage = GrabImage(image,#PB_Any,x,y,w,h)
   SaveImage(ocrimage,GetCurrentDirectory()+Uniquename+".png",#PB_ImagePlugin_PNG)
-;   ShowLibraryViewer("image",ocrimage)
+  ;   ShowLibraryViewer("image",ocrimage)
   FreeImage(ocrimage)
   
   prog = RunProgram(TesseractExe,Chr(34)+GetCurrentDirectory()+Uniquename+".png"+Chr(34)+" "+Chr(34)+GetCurrentDirectory()+Uniquename+Chr(34)+" --psm 7",GetCurrentDirectory(),#PB_Program_Hide | #PB_Program_Wait)
@@ -356,7 +356,7 @@ Procedure.s NumberOCR(image,x,y,w,h)
   ;Bildausschnitt
   ocrimage = GrabImage(image,#PB_Any,x,y,w,h)
   SaveImage(ocrimage,GetCurrentDirectory()+Uniquename+".png",#PB_ImagePlugin_PNG)
-;   ShowLibraryViewer("image",ocrimage)
+  ;   ShowLibraryViewer("image",ocrimage)
   FreeImage(ocrimage)
   
   prog = RunProgram(TesseractExe,Chr(34)+GetCurrentDirectory()+Uniquename+".png"+Chr(34)+" "+Chr(34)+GetCurrentDirectory()+Uniquename+Chr(34)+" --psm 7 nobatch digits",GetCurrentDirectory(),#PB_Program_Hide | #PB_Program_Wait)
@@ -382,7 +382,7 @@ Procedure InitReadStatusMessages(*ParameterIncoming.OCRStruct)
 EndProcedure
 Procedure.s OCRStatus(Text.s)
   LockMutex(OCRMutex)
-    Text.s = OCRStrings(Text)
+  Text.s = OCRStrings(Text)
   UnlockMutex(OCRMutex)
   
   ProcedureReturn Text
@@ -436,7 +436,7 @@ Module WebsocketClient
     Frametyp.i
     FrameMemory.i
   EndStructure
-
+  
   Declare Handshake(Connection, Servername.s, Path.s)
   Declare ApplyMasking(Array Mask.a(1), *Buffer)
   
@@ -494,7 +494,7 @@ Module WebsocketClient
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" + #CRLF$ +
                 "Sec-WebSocket-Version: 13" + #CRLF$ + 
                 "User-Agent: CustomWebsocketClient"+ #CRLF$ + #CRLF$
-                
+    
     SendNetworkString(Connection, Request.s, #PB_UTF8)
     *Buffer = AllocateMemory(65536)
     
@@ -587,7 +587,7 @@ Module WebsocketClient
     CopyMemory(*MsgBuffer, *FrameBuffer + pos, MsgLength)
     
     ;For x = 0 To 100 Step 5
-      ;Debug Str(PeekA(*FrameBuffer + x)) + " | " + Str(PeekA(*FrameBuffer + x + 1)) + " | " + Str(PeekA(*FrameBuffer + x + 2)) + " | " + Str(PeekA(*FrameBuffer + x + 3)) + " | " + Str(PeekA(*FrameBuffer + x + 4))
+    ;Debug Str(PeekA(*FrameBuffer + x)) + " | " + Str(PeekA(*FrameBuffer + x + 1)) + " | " + Str(PeekA(*FrameBuffer + x + 2)) + " | " + Str(PeekA(*FrameBuffer + x + 3)) + " | " + Str(PeekA(*FrameBuffer + x + 4))
     ;Next
     
     If SendNetworkData(connection, *FrameBuffer, Fieldlength + MsgLength) = Fieldlength + MsgLength
@@ -639,7 +639,7 @@ Module WebsocketClient
       dbg("Closing frame")
       frame_typ.w = #frame_closing
     ElseIf PeekA(*FrameBuffer) = %10001001 ; Ping
-      ; We just answer pings
+                                           ; We just answer pings
       *pongbuffer = AllocateMemory(2)
       PokeA(*pongbuffer, 138)
       PokeA(*pongbuffer+1, 0)
@@ -678,14 +678,14 @@ Module WebsocketClient
       Mask(2) = PeekA(*FrameBuffer + pos) : pos + 1
       Mask(3) = PeekA(*FrameBuffer + pos) : pos + 1
       
-    *Frametyp\FrameMemory = ReAllocateMemory(*Frametyp\FrameMemory  ,frame_size)
-    
+      *Frametyp\FrameMemory = ReAllocateMemory(*Frametyp\FrameMemory  ,frame_size)
+      
       CopyMemory(*FrameBuffer + pos, *Frametyp\FrameMemory, frame_size)
       
       ApplyMasking(Mask(), *Frametyp\FrameMemory)
       
-    FreeArray(Mask())
-    
+      FreeArray(Mask())
+      
     Else
       *Frametyp\FrameMemory = ReAllocateMemory(*Frametyp\FrameMemory,frame_size+1)
       CopyMemory(*FrameBuffer + pos, *Frametyp\FrameMemory, frame_size)
@@ -770,8 +770,8 @@ Procedure.s Chrome_GetWebsocketResponse(connection,timeout = 0)
           Frametyp\Frametyp = WebsocketClient::ReceiveFrame(connection,@Frametyp)
           If Frametyp\Frametyp = WebsocketClient::#frame_text
             Packet$ + PeekS(Frametyp\FrameMemory,MemoryStringLength(Frametyp\FrameMemory,#PB_UTF8)-1,#PB_UTF8)
-           ElseIf Frametyp\Frametyp = WebsocketClient::#frame_binary
-             Debug "Received Binaryframe"
+          ElseIf Frametyp\Frametyp = WebsocketClient::#frame_binary
+            Debug "Received Binaryframe"
           EndIf
           FreeMemory(Frametyp\FrameMemory)
           p = ElapsedMilliseconds()
@@ -794,7 +794,7 @@ EndProcedure
 
 ;HTTP-Endpoints
 Procedure   Chrome_List()
-   HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/list")
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/list")
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -821,19 +821,19 @@ Procedure   Chrome_GetVersion()
     ProcedureReturn -1
   EndIf
   
-    json = ParseJSON(#PB_Any,Response$)
-    If json
-      value = JSONValue(json)
-      If JSONType(value) = #PB_JSON_Object
-        Chrome\Version\Browser=  GetJSONString(GetJSONMember(value,"Browser"))
-        Chrome\Version\ProtocolVersion=  GetJSONString(GetJSONMember(value,"Protocol-Version"))
-        Chrome\Version\UserAgent=  GetJSONString(GetJSONMember(value,"User-Agent"))
-        Chrome\Version\V8Version=  GetJSONString(GetJSONMember(value,"V8-Version"))
-        Chrome\Version\WebKitVersion=  GetJSONString(GetJSONMember(value,"WebKit-Version"))
-        Chrome\Version\webSocketDebuggerUrl=  GetJSONString(GetJSONMember(value,"webSocketDebuggerUrl"))
-      EndIf
+  json = ParseJSON(#PB_Any,Response$)
+  If json
+    value = JSONValue(json)
+    If JSONType(value) = #PB_JSON_Object
+      Chrome\Version\Browser=  GetJSONString(GetJSONMember(value,"Browser"))
+      Chrome\Version\ProtocolVersion=  GetJSONString(GetJSONMember(value,"Protocol-Version"))
+      Chrome\Version\UserAgent=  GetJSONString(GetJSONMember(value,"User-Agent"))
+      Chrome\Version\V8Version=  GetJSONString(GetJSONMember(value,"V8-Version"))
+      Chrome\Version\WebKitVersion=  GetJSONString(GetJSONMember(value,"WebKit-Version"))
+      Chrome\Version\webSocketDebuggerUrl=  GetJSONString(GetJSONMember(value,"webSocketDebuggerUrl"))
     EndIf
-    FreeJSON(json)
+  EndIf
+  FreeJSON(json)
 EndProcedure
 Procedure.s Chrome_NewTab();Returns ID
   HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/new")
@@ -905,7 +905,7 @@ Procedure.s Chrome_DOMenable(TabID.s,enable)
   Else
     params = ChromeDefaultJson(json,"DOM.disable");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
   EndIf
-      
+  
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
 EndProcedure
@@ -913,9 +913,9 @@ Procedure Chrome_DOMgetDocument(TabID.s,depth.i=-1,pierce.b=0) ;NOT WORKING
   json = CreateJSON(#PB_Any) 
   
   params = ChromeDefaultJson(json,"DOM.getDocument");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
-   SetJSONInteger(AddJSONMember(params, "depth"), depth)
-;   SetJSONInteger(AddJSONMember(params, "pierce"), pierce)
-   
+  SetJSONInteger(AddJSONMember(params, "depth"), depth)
+  ;   SetJSONInteger(AddJSONMember(params, "pierce"), pierce)
+  
   Debug Chrome_GetWebsocketResponse(Chrome\Objects(TabID)\WsConnection,200)
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
@@ -990,11 +990,11 @@ Procedure Chrome_BrowsersetDownloadBehavior(behaviour.s,browserContextId=-1,down
   
 EndProcedure
 Procedure.s Chrome_GetHMTL(TabID.s)
-
-; Bishierhin war noch alles gut. Jetzt kommt Dreck. Ausleiten des HTML als Download...
-Filename$ = "Controller_Download_Text"
-Filepath.s = GetUserDirectory(#PB_Directory_Downloads)+Filename$ +".txt"
-
+  
+  ; Bishierhin war noch alles gut. Jetzt kommt Dreck. Ausleiten des HTML als Download...
+  Filename$ = "Controller_Download_Text"
+  Filepath.s = GetUserDirectory(#PB_Directory_Downloads)+Filename$ +".txt"
+  
   If FileSize(Filepath) > 0
     DeleteFile(Filepath)
   EndIf
@@ -1008,10 +1008,10 @@ Filepath.s = GetUserDirectory(#PB_Directory_Downloads)+Filename$ +".txt"
     f = ReadFile(#PB_Any,Filepath)
   Until f
   content$ = ReadString(f,#PB_UTF8,FileSize(Filepath))
-
-CloseFile(f)
-DeleteFile(Filepath)
-ProcedureReturn content$
+  
+  CloseFile(f)
+  DeleteFile(Filepath)
+  ProcedureReturn content$
 EndProcedure
 
 ;Javascript for Chrome
@@ -1023,7 +1023,7 @@ Procedure Chrome_JS_ClickOnButtonByClass(TabID.s,Classname.s)
 EndProcedure
 ;}
 
-;{ Process Control
+;{ Process Control <- Warning on slowdown!
 #SystemProcessInformation = $0005
 
 Structure _UNICODE_STRING Align #PB_Structure_AlignC
@@ -1047,19 +1047,26 @@ Structure ProcessName
   Name.s
   PID.i
 EndStructure
-
+Structure ScanAllProcessesForClassAndTitleWithResultUIFields
+  hwnd.i
+  Class.s
+  Text.s
+EndStructure
+Structure NestedList
+  List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
+EndStructure
 NewList Processlist.ProcessName()
 
 Procedure KillProcess (pid)
-    phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
-    If phandle <> #Null
-        If TerminateProcess_ (phandle, 1)
-            result = #True
-        EndIf
-        CloseHandle_ (phandle)
+  phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
+  If phandle <> #Null
+    If TerminateProcess_ (phandle, 1)
+      result = #True
     EndIf
-    ProcedureReturn result
-  EndProcedure
+    CloseHandle_ (phandle)
+  EndIf
+  ProcedureReturn result
+EndProcedure
 Procedure GetAllProcess(List Processlist.ProcessName()) 
   #SystemProcessInformation = $0005
   Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
@@ -1072,9 +1079,9 @@ Procedure GetAllProcess(List Processlist.ProcessName())
         *SPI = *Buffer
         While *SPI\NextEntryOffset
           If *SPI\ImageName\usBuffer
-           AddElement(Processlist())
-           Processlist()\PID = *SPI\ProcessId
-           Processlist()\Name = PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
+            AddElement(Processlist())
+            Processlist()\PID = *SPI\ProcessId
+            Processlist()\Name = PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
           EndIf
           *SPI + *SPI\NextEntryOffset
         Wend
@@ -1084,35 +1091,35 @@ Procedure GetAllProcess(List Processlist.ProcessName())
   EndIf
 EndProcedure
 Procedure CloseProcessByName(filename.s);not title!
-NewList Processlist.ProcessName()
-GetAllProcess(Processlist())
-ForEach Processlist()
-  If Processlist()\Name = filename
-    KillProcess(Processlist()\PID)
-  EndIf
-Next
+  NewList Processlist.ProcessName()
+  GetAllProcess(Processlist())
+  ForEach Processlist()
+    If Processlist()\Name = filename
+      KillProcess(Processlist()\PID)
+    EndIf
+  Next
 EndProcedure
 
 Procedure AllProcessAndPID()
   Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
-
-NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
-If dwlen
-  dwlen * 2
-  *Buffer = AllocateMemory(dwlen)
-  If *Buffer
-    If NtQuerySystemInformation_(#SystemProcessInformation, *Buffer, dwlen, @dwlen) = #ERROR_SUCCESS
-      *SPI = *Buffer
-      While *SPI\NextEntryOffset
-        If *SPI\ImageName\usBuffer
-          Debug RSet(Str(*SPI\ProcessId), 4, "0") + #TAB$ + PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
-        EndIf
-        *SPI + *SPI\NextEntryOffset
-      Wend
+  
+  NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
+  If dwlen
+    dwlen * 2
+    *Buffer = AllocateMemory(dwlen)
+    If *Buffer
+      If NtQuerySystemInformation_(#SystemProcessInformation, *Buffer, dwlen, @dwlen) = #ERROR_SUCCESS
+        *SPI = *Buffer
+        While *SPI\NextEntryOffset
+          If *SPI\ImageName\usBuffer
+            Debug RSet(Str(*SPI\ProcessId), 4, "0") + #TAB$ + PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
+          EndIf
+          *SPI + *SPI\NextEntryOffset
+        Wend
+      EndIf
+      FreeMemory(*Buffer)
     EndIf
-    FreeMemory(*Buffer)
   EndIf
-EndIf
 EndProcedure
 Procedure CheckRunningExe(FileName.s)
   Protected snap.l , Proc32.PROCESSENTRY32 , dll_kernel32.l
@@ -1174,6 +1181,68 @@ Procedure HwndToPID(hwnd)
   GetWindowThreadProcessId_(hwnd, @PID)
   ProcedureReturn PID
 EndProcedure
+
+;!BEWARNED!
+;These functions are hard For the AV And might 1) cause loading issues 2) trigger false-positives
+Procedure ScanHwndForClassAndText(hWnd.i, Map Result.s(),Prefix.s = "")
+  Protected nexthwnd.i, szClass.s{1024}, szText.s{2048}
+  nexthwnd = GetWindow_(hwnd, #GW_CHILD | #GW_HWNDFIRST)
+  While nexthwnd <> 0
+    GetClassName_(nexthwnd, @szClass, SizeOf(szClass))
+    GetWindowText_(nexthwnd, @szText, SizeOf(szText))
+    SendMessage_(nexthwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText) ; Unicode Support
+    Result("hwnd: "+Str(nexthwnd) + " Class: "+ Prefix + szClass) = szText
+    ScanHwndForClassAndText(nexthwnd,Result(),szClass+"\")
+    CloseHandle_(nexthwnd)
+    nexthwnd = GetWindow_(nexthwnd, #GW_HWNDNEXT)
+  Wend
+  
+EndProcedure
+Procedure.s GetHwndText(hwnd.i)
+  szText.s{1000000} ;/1MiB
+  SendMessage_(hwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText)
+  ProcedureReturn szText
+EndProcedure
+Procedure cbEnumParentsWithCallback(hWnd.i, *FunctionPointer)
+  Protected szClass.s{1024}, szText.s{2048}
+  GetClassName_(hWnd, @szClass, SizeOf(szClass))
+  GetWindowText_(hWnd, @szText, SizeOf(szText))
+  CallFunctionFast(*FunctionPointer,hwnd,@szClass,@szText)
+  ProcedureReturn 1
+EndProcedure
+Procedure cbEnumParentsWithResult(hWnd.i, *Result.NestedList)
+  Protected szClass.s{1024}, szText.s{2048}
+  GetClassName_(hWnd, @szClass, SizeOf(szClass))
+  GetWindowText_(hWnd, @szText, SizeOf(szText))
+  AddElement(*Result\Nested())
+  *Result\Nested()\Class = szClass
+  *Result\Nested()\hwnd = hWnd
+  *Result\Nested()\Text = szText
+  ProcedureReturn 1
+EndProcedure
+Procedure ScanAllProcessesForClassAndTitleWithCustomFunction(*CallbackFunctionPointer)
+  EnumWindows_(@cbEnumParentsWithCallback(),*CallbackFunctionPointer)
+  ;{ EXAMPLE
+  
+  ; Procedure CallBack_EnumParents(PID,Class.s,Text.s)
+  ;   Debug Str(PID)+Chr(9)+Class+": "+Text
+  ; EndProcedure
+  ; 
+  ; ScanAllProcessesForClassAndTitle(@CallBack_EnumParents())
+  ;}
+EndProcedure
+Procedure ScanAllProcessesForClassAndTitleWithResult(*ResultList)
+  EnumWindows_(@cbEnumParentsWithResult(),*ResultList)
+  ;Example
+  ;   ResultList.NestedList
+  ;   ScanAllProcessesForClassAndTitleWithResult(@ResultList)
+  ;   ForEach ResultList\Nested()
+  ;     Debug ResultList\Nested()\hwnd
+  ;     Debug ResultList\Nested()\Class
+  ;     Debug ResultList\Nested()\Text
+  ;   Next
+EndProcedure
+
 ;}
 
 ;{ Process Memory Read
@@ -1184,39 +1253,39 @@ Procedure.i GetModule(ProcessId.l, ModuleName.s)
   Protected snapShot.i
   ;Struktur für die Eigenschaften eines Moduls
   Protected Me32.MODULEENTRY32
-   ;Wenn die Library "kernel32.dll" geladen wurden
-   If kernel32
-     ;Rufe die Funktion ToolHelp mit der ProcessID auf. Gibt den Handle auf die Module der ProcessID
-     snapShot=CallFunction(kernel32, "CreateToolhelp32Snapshot", #TH32CS_SNAPMODULE, ProcessId)
-     ;falls erfolgreich
-     If snapShot
-       ;Bereite eine Struktur des Typs Moduleentry32 vor um die einzelnen Module nacheinander da reinzuschreiben
-       ;Die Größe der Struktur wird in der Struktur festgehalten (Windows-eigen)
-       Me32\dwSize=SizeOf(MODULEENTRY32)
-       ;Belade die Struktur mit dem ersten Modul des Prozesses
-       If CallFunction(kernel32, "Module32First", snapShot, @Me32)
-         ;Werte den Modulnamen aus
-         Repeat
-           ;Lese String aus dem Speicherbereich Me32\szModule bis zur Nullterminierung (-1) aks ASCCI
-           Protected moduleName$=PeekS(@Me32\szModule, -1, #PB_Ascii)
-           ;Ist der String der gesuchten Modulnamen?
-           If moduleName$=ModuleName
-             ;Falls ja, abbruch und Baseaddresse aus der Struktur auslesen und returnen
-             CloseLibrary(kernel32)
-             ProcedureReturn Me32\modBaseAddr
-           EndIf
-            ;Sonst: Nächstes Modul bis es kein Nächstes mehr gibt.
-         Until Not CallFunction(kernel32, "Module32Next", snapShot, @Me32)
-       EndIf
-       ;Alle Module wurden durchsucht / es wurde das richtige gefunden. Jetzt den Funktionshandle freigaben (max 4048 pro Programm)
-       CloseHandle_(snapShot)
-     EndIf
-   EndIf
-   CloseLibrary(kernel32)
-   ;Wenn oben keine Baseadresse ermittelt werden konnte, gebe Null zurück
-   ProcedureReturn 0
- EndProcedure
- 
+  ;Wenn die Library "kernel32.dll" geladen wurden
+  If kernel32
+    ;Rufe die Funktion ToolHelp mit der ProcessID auf. Gibt den Handle auf die Module der ProcessID
+    snapShot=CallFunction(kernel32, "CreateToolhelp32Snapshot", #TH32CS_SNAPMODULE, ProcessId)
+    ;falls erfolgreich
+    If snapShot
+      ;Bereite eine Struktur des Typs Moduleentry32 vor um die einzelnen Module nacheinander da reinzuschreiben
+      ;Die Größe der Struktur wird in der Struktur festgehalten (Windows-eigen)
+      Me32\dwSize=SizeOf(MODULEENTRY32)
+      ;Belade die Struktur mit dem ersten Modul des Prozesses
+      If CallFunction(kernel32, "Module32First", snapShot, @Me32)
+        ;Werte den Modulnamen aus
+        Repeat
+          ;Lese String aus dem Speicherbereich Me32\szModule bis zur Nullterminierung (-1) aks ASCCI
+          Protected moduleName$=PeekS(@Me32\szModule, -1, #PB_Ascii)
+          ;Ist der String der gesuchten Modulnamen?
+          If moduleName$=ModuleName
+            ;Falls ja, abbruch und Baseaddresse aus der Struktur auslesen und returnen
+            CloseLibrary(kernel32)
+            ProcedureReturn Me32\modBaseAddr
+          EndIf
+          ;Sonst: Nächstes Modul bis es kein Nächstes mehr gibt.
+        Until Not CallFunction(kernel32, "Module32Next", snapShot, @Me32)
+      EndIf
+      ;Alle Module wurden durchsucht / es wurde das richtige gefunden. Jetzt den Funktionshandle freigaben (max 4048 pro Programm)
+      CloseHandle_(snapShot)
+    EndIf
+  EndIf
+  CloseLibrary(kernel32)
+  ;Wenn oben keine Baseadresse ermittelt werden konnte, gebe Null zurück
+  ProcedureReturn 0
+EndProcedure
+
 Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
   ;Wenn der Speicher einer DLL angehört statt dem eigentlichen Prozess
   ;ModuleName$ z.b. "mono.dll"
@@ -1227,11 +1296,11 @@ Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
     Debug "Cannot open Process"
     ProcedureReturn -1
   EndIf
-    
+  
   If Len(moduleAddress$) > 0
     moduleAddress=GetModule(PID, ModuleName$)
   EndIf
-    
+  
   FirstElement(Offsets())
   address = moduleAddress+Offsets() ; Nicht getestet, sollte klappen
   Repeat
@@ -1249,11 +1318,13 @@ EndProcedure
 
 
 ; CompilerIf Not #PB_Compiler_IsIncludeFile
-;   Debug "Nutze mich nur per include"
+;   Debug "Only use me by include"
 ; CompilerEndIf
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1253
-; Folding = AAAAAAIAAAAAAg
+; CursorPosition = 1241
+; FirstLine = 57
+; Folding = AAAAAAAAAAAIAAA-
 ; EnableThread
 ; EnableXP
+; EnablePurifier

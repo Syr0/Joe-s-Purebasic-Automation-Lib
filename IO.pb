@@ -92,7 +92,7 @@ Procedure Keyboard_PushAndRelease(Code)
 EndProcedure
 ;}
 
-;{ Keyboard Input Detection
+;{ Input Detection
 Procedure Whichkeysaredown(List Resultslist())
   ClearList(Resultslist())
   For x = 0 To 255
@@ -209,6 +209,20 @@ Procedure.i FindImageColor(image,Color,Threshold,List P.POINT())
   Next
   StopDrawing()
   ProcedureReturn ListSize(p())
+EndProcedure
+Procedure DrawTextOnScreen(Text.s,x,y)
+  tR.RECT
+hdc = CreateDC_("DISPLAY", 0, 0, 0) 
+If hdc
+   tR\left = x 
+   tR\top = y
+   tR\right = x+(Len(text)*10) 
+   tR\bottom = y+32 
+   lCol = GetTextColor_(hdc) 
+   SetTextColor_(hdc, $FF)
+   DrawText_(hdc, Text, Len(Text), tR, 0 )
+   SetTextColor_( hdc, lCol)
+EndIf
 EndProcedure
 ;}
 
@@ -1388,8 +1402,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
    Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 93
-; Folding = AAAAAAAAAAAAAAAw
+; CursorPosition = 217
+; FirstLine = 15
+; Folding = AAAIAAABAAAAAAAg
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

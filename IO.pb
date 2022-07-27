@@ -89,6 +89,12 @@ Procedure Keyboard_PushAndRelease(Code)
   keybd_event_(Code,0,#KEYEVENTF_KEYUP,0)
   Delay(20)
 EndProcedure
+Procedure Keyboard_SimulateText(Text.s)
+  For x = 1 To Len(text)
+    Keyboard_PushAndRelease(Asc(Mid(text,x,1)))
+  Next
+EndProcedure
+
 ;}
 
 ;{ Input Detection
@@ -1401,7 +1407,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
    Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; Folding = AAAAAAAAAAAABAAg
+; CursorPosition = 93
+; Folding = AAICAAAAAAAACAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

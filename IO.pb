@@ -1,5 +1,4 @@
-﻿InitNetwork()
-UsePNGImageEncoder()
+﻿UsePNGImageEncoder()
 ExamineDesktops()
 
 ;{ Mouse Input Simulation
@@ -1401,10 +1400,8 @@ EndProcedure
 CompilerIf Not #PB_Compiler_IsIncludeFile
    Debug "Only use me by include"
 CompilerEndIf
-; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 217
-; FirstLine = 15
-; Folding = AAAIAAABAAAAAAAg
+; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+; Folding = AAAAAAAAAAAABAAg
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

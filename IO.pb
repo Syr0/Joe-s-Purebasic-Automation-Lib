@@ -1356,15 +1356,12 @@ EndProcedure
 
 ;}
 
-
-; CompilerIf Not #PB_Compiler_IsIncludeFile
-;   Debug "Only use me by include"
-; CompilerEndIf
-
+CompilerIf Not #PB_Compiler_IsIncludeFile
+   Debug "Only use me by include"
+CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1186
-; FirstLine = 54
-; Folding = AAAAAAAAAAAIAAA+
+; CursorPosition = 1360
+; Folding = AAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

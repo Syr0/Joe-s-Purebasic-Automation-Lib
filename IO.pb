@@ -90,10 +90,23 @@ Procedure Keyboard_PushAndRelease(Code)
   Delay(20)
 EndProcedure
 Procedure Keyboard_SimulateText(Text.s)
-  For x = 1 To Len(text)
-    Keyboard_PushAndRelease(Asc(Mid(text,x,1)))
-  Next
-EndProcedure
+  If FindString(Text,".")
+    oldclip$ = GetClipboardText()
+    SetClipboardText(Text)
+    ; Yes that sucks - would need to work with postmessage_() but that needs a handle..
+    Keyboard_Push(#VK_LCONTROL)
+    Keyboard_PushAndRelease(#VK_V)
+    Keyboard_Release(#VK_LCONTROL)
+    SetClipboardText(oldclip$)
+  Else
+    
+    For x = 1 To Len(text)
+      Keyboard_PushAndRelease(Asc(Mid(text,x,1)))
+    Next
+  EndIf
+  
+  EndProcedure
+  
 
 ;}
 

@@ -92,6 +92,34 @@ Procedure Keyboard_PushAndRelease(Code)
 EndProcedure
 ;}
 
+;{ Keyboard Input Detection
+Procedure Whichkeysaredown(List Resultslist())
+  ClearList(Resultslist())
+  For x = 0 To 255
+    If GetAsyncKeyState_(x)
+      AddElement(Resultslist())
+      Resultslist() = x
+    EndIf
+  Next
+EndProcedure
+;Example:
+; NewList results()
+; Repeat
+;   Whichkeysaredown(results())
+;   If ListSize(results()) > 0
+;     ForEach results()
+;       keysdown.s +" "+results()+" +"
+;     Next
+;     Trim(keysdown,"+"):Trim(keysdown," ")
+;     Debug keysdown
+;     keysdown = ""
+;   EndIf
+;   
+;   Delay(1)
+; ForEver
+
+;}
+
 ;{ Visual Output
 Structure Pixels
   x.i
@@ -1360,8 +1388,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
    Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1360
-; Folding = AAAAAAAAAAAAAAA+
+; CursorPosition = 93
+; Folding = AAAAAAAAAAAAAAAw
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

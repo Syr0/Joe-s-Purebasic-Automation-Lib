@@ -1252,10 +1252,9 @@ EndProcedure
 ;   Debug "Nutze mich nur per include"
 ; CompilerEndIf
 
-
+; test
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1227
-; FirstLine = 21
-; Folding = AAAAAAAAAAAAA1
+; CursorPosition = 1254
+; Folding = AAAAAAIAAAAAAg
 ; EnableThread
 ; EnableXP

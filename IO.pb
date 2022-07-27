@@ -1184,7 +1184,8 @@ EndProcedure
 
 ;!BEWARNED!
 ;These functions are hard For the AV And might 1) cause loading issues 2) trigger false-positives
-Procedure ScanHwndForClassAndText(hWnd.i, Map Result.s(),Prefix.s = "")
+Declare.s GetHwndText(hwnd.i)
+Procedure ScanHwndForAllText(hWnd.i, Map Result.s(),Prefix.s = "")
   Protected nexthwnd.i, szClass.s{1024}, szText.s{2048}
   nexthwnd = GetWindow_(hwnd, #GW_CHILD | #GW_HWNDFIRST)
   While nexthwnd <> 0
@@ -1192,16 +1193,11 @@ Procedure ScanHwndForClassAndText(hWnd.i, Map Result.s(),Prefix.s = "")
     GetWindowText_(nexthwnd, @szText, SizeOf(szText))
     SendMessage_(nexthwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText) ; Unicode Support
     Result("hwnd: "+Str(nexthwnd) + " Class: "+ Prefix + szClass) = szText
-    ScanHwndForClassAndText(nexthwnd,Result(),szClass+"\")
+    ScanHwndForAllText(nexthwnd,Result(),szClass+"\")
     CloseHandle_(nexthwnd)
     nexthwnd = GetWindow_(nexthwnd, #GW_HWNDNEXT)
   Wend
   
-EndProcedure
-Procedure.s GetHwndText(hwnd.i)
-  szText.s{1000000} ;/1MiB
-  SendMessage_(hwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText)
-  ProcedureReturn szText
 EndProcedure
 Procedure cbEnumParentsWithCallback(hWnd.i, *FunctionPointer)
   Protected szClass.s{1024}, szText.s{2048}
@@ -1217,7 +1213,14 @@ Procedure cbEnumParentsWithResult(hWnd.i, *Result.NestedList)
   AddElement(*Result\Nested())
   *Result\Nested()\Class = szClass
   *Result\Nested()\hwnd = hWnd
-  *Result\Nested()\Text = szText
+  
+  ;If the 1kb Buffer was too small, use the 100kb buffer
+  If Len(szText) > 1000
+    *Result\Nested()\Text =  gethwndtext(hWnd)
+  Else
+    *Result\Nested()\Text = szText
+  EndIf
+  
   ProcedureReturn 1
 EndProcedure
 Procedure ScanAllProcessesForClassAndTitleWithCustomFunction(*CallbackFunctionPointer)
@@ -1234,15 +1237,52 @@ EndProcedure
 Procedure ScanAllProcessesForClassAndTitleWithResult(*ResultList)
   EnumWindows_(@cbEnumParentsWithResult(),*ResultList)
   ;Example
-  ;   ResultList.NestedList
+  ;   ResultList.NestedList                                   
   ;   ScanAllProcessesForClassAndTitleWithResult(@ResultList)
   ;   ForEach ResultList\Nested()
-  ;     Debug ResultList\Nested()\hwnd
-  ;     Debug ResultList\Nested()\Class
-  ;     Debug ResultList\Nested()\Text
+  ;     Debug Str(ResultList\Nested()\hwnd)+Chr(9)+ResultList\Nested()\Class+Chr(9)+ResultList\Nested()\Text
   ;   Next
 EndProcedure
 
+Procedure.s GetHwndText(hwnd.i) ; Supports 100kb long texts - way more then ScanHwndForClassAndText() (1kb)
+  szText.s{100000}              ;100kb - Don't overflow the stack maximum on test before overflow= 514882
+  SendMessage_(hwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText)
+  ProcedureReturn szText
+EndProcedure
+Procedure SearchTextOnWinUI(Text.s,ResultNr=1) ; Returns the hwnd - searches all titles, classes and content
+  ResultList.NestedList
+  NewMap TempResultMap.s()
+  ScanAllProcessesForClassAndTitleWithResult(@ResultList)
+  Hit = 0
+  ForEach ResultList\Nested()
+    If Len(ResultList\Nested()\Text) = 0
+      Continue
+    EndIf
+    If FindString(ResultList\Nested()\Text,text) Or FindString(ResultList\Nested()\Class,text)
+      Hit+1
+      If Hit >= ResultNr
+        ProcedureReturn ResultList\Nested()\hwnd
+      EndIf
+      
+    Else
+      ;If not in title and class- maybe in content?
+      ScanHwndForAllText(ResultList\Nested()\hwnd,TempResultMap())
+      ForEach TempResultMap()
+        If FindString(TempResultMap(),text)
+          Key$ = MapKey(TempResultMap())
+          ;Remember: Key = "hwnd: "+Str(nexthwnd) + " Class: "
+          hwnd = Val(StringField(StringField(Key$,1," Class: "),2,"hwnd: "))
+          Hit+1
+          If Hit >= ResultNr
+            ProcedureReturn hwnd
+          EndIf
+          
+        EndIf
+      Next
+      
+    EndIf
+  Next
+EndProcedure
 ;}
 
 ;{ Process Memory Read
@@ -1322,9 +1362,9 @@ EndProcedure
 ; CompilerEndIf
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1241
-; FirstLine = 57
-; Folding = AAAAAAAAAAAIAAA-
+; CursorPosition = 1186
+; FirstLine = 54
+; Folding = AAAAAAAAAAAIAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

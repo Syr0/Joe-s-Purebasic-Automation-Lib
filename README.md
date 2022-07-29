@@ -2,7 +2,7 @@
 Damn useful collection of functions to automate everything. For Input Simulation, Output Requests and Analysis. 
 
 Functions:
-  Procedure **IO_Set_SetMousePos**(x,y) \n
+  Procedure **IO_Set_SetMousePos**(x,y)
   Procedure **IO_Set_LeftClick**(Delay = 0)
   Procedure **IO_Set_LeftClickDown**(Delay = 0)
   Procedure **IO_Set_LeftClickPosition**(x,y,Delay=0)
@@ -16,7 +16,7 @@ Functions:
   Procedure **IO_Set_Key**(Code,Delay=0)
   Procedure **IO_Set_WriteText**(Text.s)
   Procedure **IO_Get_KeysDown**(List Resultslist**()
-  Procedure **IO_Set_KillProcess **(pid)
+  Procedure **IO_Set_KillProcess**(pid)
   Procedure **IO_Get_AllProcess**(List Processlist.ProcessName**()
   Procedure **IO_Set_CloseProcessByName**(filename.s)
   Procedure **IO_Check_RunningExe**(FileName.s)
@@ -40,7 +40,7 @@ Functions:
   Procedure.d **IO_Set_NN_Propagade**(List Network.layer**()
   Procedure **IO_Set_NN_Savenet**(Path.s,List network.layer**()
   Procedure **IO_Set_NN_Loadnet**(Path.s,List network.layer**()
-  Procedure **IO_Get_ColorFromImage **(image, *Position.POINT)
+  Procedure **IO_Get_ColorFromImage**(image, *Position.POINT)
   Procedure **IO_Check_PixelPattern**(image,List Pixels.Pixels**()
   Procedure **IO_Check_PixelPatternThreshold**(image,List Pixels.Pixels**()
   Procedure **IO_Get_ImageFilterMinMax_Numerical**(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,BlueMax,List P.POINT**()

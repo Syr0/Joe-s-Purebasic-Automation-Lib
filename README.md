@@ -2,7 +2,7 @@
 Damn useful collection of functions to automate everything. For Input Simulation, Output Requests and Analysis. 
 
 Functions:
-  Procedure **IO_Set_SetMousePos**(x,y)
+  Procedure **IO_Set_SetMousePos**(x,y) \n
   Procedure **IO_Set_LeftClick**(Delay = 0)
   Procedure **IO_Set_LeftClickDown**(Delay = 0)
   Procedure **IO_Set_LeftClickPosition**(x,y,Delay=0)

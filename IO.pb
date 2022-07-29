@@ -18,9 +18,9 @@ ExamineDesktops()
 ;IO_Get_xxx()
 ;IO_Check_xx()
 
-;---------------------------
-;     API & Windows-Libs   |
-;---------------------------
+;--------------------------;
+;     API & Windows-Libs   ;
+;--------------------------;
 CompilerIf 1=1
   ;{ Mouse Input Simulation
   Procedure IO_Set_SetMousePos(x,y)
@@ -627,9 +627,9 @@ CompilerIf 1=1
   EndProcedure
   ;}
 CompilerEndIf
-;---------------------------
-;         Purebasic        |
-;---------------------------
+;--------------------------;
+;         Purebasic        ;
+;--------------------------;
 CompilerIf 1=0
   ;{ AI
   
@@ -1202,9 +1202,9 @@ CompilerIf 1=0
                              ;}
   
 CompilerEndIf
-;---------------------------
-;   Using external Tools   |
-;---------------------------
+;--------------------------;
+;   Using external Tools   ;
+;--------------------------;
 CompilerIf 1=0
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
@@ -3407,9 +3407,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 632
-; FirstLine = 7
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 1204
+; FirstLine = 38
+; Folding = BAAAAAAAQAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

@@ -1,117 +1,117 @@
 ﻿UsePNGImageEncoder()
 ExamineDesktops()
 
+;README
+;Use Ctrl+F4 to collapse all foldings
+
+;There are three different Prefixes:
+;IO_Set_xxx()
+;IO_Get_xxx()
+;IO_Check_xx()
+
+
 ;{ Mouse Input Simulation
-Procedure Mouse_GetXPosition()
-  GetCursorPos_(Mouse.POINT)
-  ProcedureReturn Mouse\x
-EndProcedure
-Procedure Mouse_GetYPosition()
-  GetCursorPos_(Mouse.POINT)
-  ProcedureReturn Mouse\y
-EndProcedure
-Procedure Mouse_SetPosition(x,y)
+Procedure IO_Set_SetMousePos(x,y)
   SetCursorPos_(x,y)
 EndProcedure
-Procedure Mouse_LClickOnPosition(x,y)
-  SetCursorPos_(x,y)
-  Delay(20)
+
+Procedure IO_Set_LeftClick(Delay = 0)
   mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
-  Delay(20)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
+EndProcedure
+Procedure IO_Set_LeftClickUp()
+  mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
+EndProcedure
+Procedure IO_Set_LeftClickDown(Delay = 0)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
+  Delay(delay)
+EndProcedure
+Procedure IO_Set_LeftClickPosition(x,y,Delay=0)
+  SetCursorPos_(x,y)
+  Delay(Delay)
+  mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
+  Delay(Delay)
   mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
 EndProcedure  
-Procedure Mouse_RClickOnPosition(x,y)
-  SetCursorPos_(x,y)
-  Delay(5)
+
+Procedure IO_Set_RightClick(Delay = 0)
   mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
-  Delay(5)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
+EndProcedure
+Procedure IO_Set_RightClickUp()
+  mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
+EndProcedure
+Procedure IO_Set_RightClickDown(Delay = 0)
+  Delay(delay)
+  mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
+  Delay(delay)
+EndProcedure
+Procedure IO_Set_RightClickPosition(x,y,Delay=0)
+  SetCursorPos_(x,y)
+  Delay(Delay)
+  mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
+  Delay(Delay)
   mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
 EndProcedure  
-Procedure Mouse_PushAndRelease(Code)
-  keybd_event_(Code, 0, 0,0)
-  keybd_event_(Code, 0, #KEYEVENTF_KEYUP,0)
-EndProcedure
-Procedure Mouse_LClickRelease()
-  mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
-EndProcedure
-Procedure Mouse_LClickPush(Delay = 0)
-  Delay(delay)
-  mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
-  Delay(delay)
-EndProcedure
-Procedure Mouse_LClick(Delay = 0)
-  mouse_event_(#MOUSEEVENTF_LEFTDOWN,0,0,0,0)
-  Delay(delay)
-  mouse_event_(#MOUSEEVENTF_LEFTUP,0,0,0,0)
-EndProcedure
-Procedure Mouse_RClick(Delay = 0)
-  mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
-  Delay(delay)
-  mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
-EndProcedure
-Procedure Mouse_RClickRelease()
-  mouse_event_(#MOUSEEVENTF_RIGHTUP,0,0,0,0)
-EndProcedure
-Procedure Mouse_RClickPush(Delay = 0)
-  Delay(delay)
-  mouse_event_(#MOUSEEVENTF_RIGHTDOWN,0,0,0,0)
-  Delay(delay)
-EndProcedure
-Procedure Mouse_wheelUp()
+
+Procedure IO_Set_MouseWheelUp(delay=10)
   in.Input
   in\type = #INPUT_MOUSE
   in\mi\dwFlags = #MOUSEEVENTF_WHEEL
   in\mi\mouseData = 120
   SendInput_(1,@in,SizeOf(input))
-  Delay(10)
+  Delay(delay)
 EndProcedure  
-Procedure Mouse_wheelDown()
+Procedure IO_Set_MouseWheelDown(delay=10)
   in.Input
   in\type = #INPUT_MOUSE
   in\mi\dwFlags = #MOUSEEVENTF_WHEEL
   in\mi\mouseData = -120
   SendInput_(1,@in,SizeOf(input))
-  Delay(10)
+  Delay(delay)
 EndProcedure  
 ;}
 
 ;{ Keyboard Input Simulation
-Procedure Keyboard_Push(Code)
+Procedure IO_Set_KeyDown(Code,delay=0)
   keybd_event_(Code,0,0,0)
-  Delay(10)
+  Delay(delay)
 EndProcedure
-Procedure Keyboard_Release(Code)
+Procedure IO_Set_KeyUp(Code,delay=0)
   keybd_event_(Code,0,#KEYEVENTF_KEYUP,0)
+  Delay(delay)
 EndProcedure
-Procedure Keyboard_PushAndRelease(Code)
-  keybd_event_(Code,0,0,0)
-  Delay(20)
-  keybd_event_(Code,0,#KEYEVENTF_KEYUP,0)
-  Delay(20)
+Procedure IO_Set_Key(Code,Delay=0)
+  keybd_event_(Code, 0, 0,0)
+  Delay(Delay)
+  keybd_event_(Code, 0, #KEYEVENTF_KEYUP,0)
+  Delay(Delay)
 EndProcedure
-Procedure Keyboard_SimulateText(Text.s)
+Procedure IO_Set_WriteText(Text.s)
   If FindString(Text,".")
     oldclip$ = GetClipboardText()
     SetClipboardText(Text)
     ; Yes that sucks - would need to work with postmessage_() but that needs a handle..
-    Keyboard_Push(#VK_LCONTROL)
-    Keyboard_PushAndRelease(#VK_V)
-    Keyboard_Release(#VK_LCONTROL)
+    IO_Set_KeyDown(#VK_LCONTROL)
+    IO_Set_Key(#VK_V)
+    IO_Set_KeyUp(#VK_LCONTROL)
     SetClipboardText(oldclip$)
   Else
     
     For x = 1 To Len(text)
-      Keyboard_PushAndRelease(Asc(Mid(text,x,1)))
+      IO_Set_Key(Asc(Mid(text,x,1)))
     Next
   EndIf
   
-  EndProcedure
-  
+EndProcedure
 
 ;}
 
 ;{ Input Detection
-Procedure Whichkeysaredown(List Resultslist())
+Procedure IO_Get_KeysDown(List Resultslist())
   ClearList(Resultslist())
   For x = 0 To 255
     If GetAsyncKeyState_(x)
@@ -119,32 +119,43 @@ Procedure Whichkeysaredown(List Resultslist())
       Resultslist() = x
     EndIf
   Next
+  ;Example:
+  ; NewList results()
+  ; Repeat
+  ;   Whichkeysaredown(results())
+  ;   If ListSize(results()) > 0
+  ;     ForEach results()
+  ;       keysdown.s +" "+results()+" +"
+  ;     Next
+  ;     Trim(keysdown,"+"):Trim(keysdown," ")
+  ;     Debug keysdown
+  ;     keysdown = ""
+  ;   EndIf
+  ;   
+  ;   Delay(1)
+  ; ForEver
+  
 EndProcedure
-;Example:
-; NewList results()
-; Repeat
-;   Whichkeysaredown(results())
-;   If ListSize(results()) > 0
-;     ForEach results()
-;       keysdown.s +" "+results()+" +"
-;     Next
-;     Trim(keysdown,"+"):Trim(keysdown," ")
-;     Debug keysdown
-;     keysdown = ""
-;   EndIf
-;   
-;   Delay(1)
-; ForEver
+Procedure IO_Get_MouseX()
+  GetCursorPos_(Mouse.POINT)
+  ProcedureReturn Mouse\x
+EndProcedure
+Procedure IO_Get_MouseY()
+  GetCursorPos_(Mouse.POINT)
+  ProcedureReturn Mouse\y
+EndProcedure
 
 ;}
 
 ;{ Visual Output
+;{ Structures
 Structure Pixels
   x.i
   y.i
   Color.i
 EndStructure
-Procedure MakeDesktopScreenshot()
+;}
+Procedure IO_Get_Screenshot()
   img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
   hDC = StartDrawing(ImageOutput(img))
   If hDC
@@ -157,7 +168,7 @@ Procedure MakeDesktopScreenshot()
   StopDrawing()
   ProcedureReturn img
 EndProcedure
-Procedure Colorpick (image, *Position.POINT)
+Procedure IO_Get_ColorFromImage (image, *Position.POINT)
   If *Position\x < 0 Or *Position\x >= ImageWidth(image) Or *Position\y < 0 Or *Position\y >= ImageHeight(image)
     ProcedureReturn -1
   EndIf
@@ -167,7 +178,7 @@ Procedure Colorpick (image, *Position.POINT)
   StopDrawing()
   ProcedureReturn color
 EndProcedure
-Procedure PixelPatternCheck(image,List Pixels.Pixels())
+Procedure IO_Check_PixelPattern(image,List Pixels.Pixels())
   StartDrawing(ImageOutput(image))
   ForEach Pixels()
     If Not Point(Pixels()\x,Pixels()\y) = Pixels()\Color
@@ -178,7 +189,7 @@ Procedure PixelPatternCheck(image,List Pixels.Pixels())
   StopDrawing()
   ProcedureReturn 1
 EndProcedure
-Procedure PixelPatternThresholdCheck(image,List Pixels.Pixels(),Threshold)
+Procedure IO_Check_PixelPatternThreshold(image,List Pixels.Pixels(),Threshold)
   StartDrawing(ImageOutput(image))
   ForEach Pixels()
     c = Point(Pixels()\x,Pixels()\y)
@@ -193,7 +204,7 @@ Procedure PixelPatternThresholdCheck(image,List Pixels.Pixels(),Threshold)
   StopDrawing()
   ProcedureReturn 1
 EndProcedure
-Procedure.i FindImageColorDetail(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,BlueMax,List P.POINT())
+Procedure IO_Get_ImageFilterMinMax_Numerical(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,BlueMax,List P.POINT())
   StartDrawing(ImageOutput(image))
   For x = 0 To ImageWidth(image)-1
     For y = 0 To ImageHeight(image)-1
@@ -201,7 +212,6 @@ Procedure.i FindImageColorDetail(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,B
       If Red(c) > RedMin And Red(c) < RedMax And
          Green(c) > GreenMin And Green(c) < GreenMax And
          Blue(c) > BlueMin And Blue(c) < BlueMax
-        StopDrawing()
         AddElement(P())
         P()\x = x
         P()\y = y
@@ -209,9 +219,9 @@ Procedure.i FindImageColorDetail(image,RedMin,RedMax,GreenMin,GreenMax,BlueMin,B
     Next
   Next
   StopDrawing()
-  ProcedureReturn 0
+  ProcedureReturn ListSize(p())
 EndProcedure
-Procedure.i FindImageColor(image,Color,Threshold,List P.POINT())
+Procedure IO_Get_ImageFilterThreshold_Numerical(image,Color,Threshold,List P.POINT())
   StartDrawing(ImageOutput(image))
   For x = 0 To ImageWidth(image)-1
     For y = 0 To ImageHeight(image)-1
@@ -228,26 +238,26 @@ Procedure.i FindImageColor(image,Color,Threshold,List P.POINT())
   StopDrawing()
   ProcedureReturn ListSize(p())
 EndProcedure
-Procedure DrawTextOnScreen(Text.s,x,y)
+Procedure IO_Set_TextOnScreen(Text.s,x,y)
   tR.RECT
-hdc = CreateDC_("DISPLAY", 0, 0, 0) 
-If hdc
-   tR\left = x 
-   tR\top = y
-   tR\right = x+(Len(text)*10) 
-   tR\bottom = y+32 
-   lCol = GetTextColor_(hdc) 
-   SetTextColor_(hdc, $FF)
-   DrawText_(hdc, Text, Len(Text), tR, 0 )
-   SetTextColor_( hdc, lCol)
-EndIf
+  hdc = CreateDC_("DISPLAY", 0, 0, 0) 
+  If hdc
+    tR\left = x 
+    tR\top = y
+    tR\right = x+(Len(text)*10) 
+    tR\bottom = y+32 
+    lCol = GetTextColor_(hdc) 
+    SetTextColor_(hdc, $FF)
+    DrawText_(hdc, Text, Len(Text), tR, 0 )
+    SetTextColor_( hdc, lCol)
+  EndIf
 EndProcedure
 ;}
 
 ;{ OCR-Install
-Procedure DownloadTesseract()
-  Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.0.0-alpha.20210506.exe"
-  DownloadSize = 53209536
+Procedure IO_Set_DownloadTesseract()
+  Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
+  DownloadSize = 56237870
   
   Download = ReceiveHTTPFile(Downloadlink, GetTemporaryDirectory()+"TesseractInstaller.exe",#PB_HTTP_Asynchronous)
   Progresswindow = OpenWindow(#PB_Any,DesktopWidth(0)/2-100,200,200,40,"Tesseract Installation",#PB_Window_BorderLess)
@@ -273,7 +283,7 @@ Procedure DownloadTesseract()
     MessageRequester("Error","Download failed. Pls install tesseract manually.")
   EndIf
 EndProcedure
-Procedure GuidedInstaller()
+Procedure IO_Set_GuidedTesseractInstall()
   program = RunProgram(GetTemporaryDirectory()+"TesseractInstaller.exe","","",#PB_Program_Open )
   If program
     Repeat
@@ -283,53 +293,53 @@ Procedure GuidedInstaller()
     SetActiveWindow_(handle)
     Delay(200)
     ;Sprache
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     Delay(200)
     ;Empfehlung
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     ;Lizenz
     Delay(200)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     ;Benutzer
     Delay(200)
-    Keyboard_PushAndRelease(#VK_TAB)
-    Keyboard_PushAndRelease(#VK_TAB)
-    Keyboard_PushAndRelease(#VK_TAB)
-    Keyboard_PushAndRelease(#VK_SPACE)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_TAB)
+    IO_Set_Key(#VK_TAB)
+    IO_Set_Key(#VK_TAB)
+    IO_Set_Key(#VK_SPACE)
+    IO_Set_Key(#VK_RETURN)
     ;Packages
     Delay(200)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     ;Pfad
     Wunschpfad.s = GetCurrentDirectory()+"Tesseract"
     SetClipboardText(Wunschpfad)
     
     ;Str+A
-    Keyboard_Push(#VK_CONTROL)
-    Keyboard_Push(#VK_A)
+    IO_Set_KeyDown(#VK_CONTROL)
+    IO_Set_KeyDown(#VK_A)
     Delay(100)
-    Keyboard_Release(#VK_CONTROL)
-    Keyboard_Release(#VK_A)
+    IO_Set_KeyUp(#VK_CONTROL)
+    IO_Set_KeyUp(#VK_A)
     Delay(100)
     ;Str+V
-    Keyboard_Push(#VK_CONTROL)
-    Keyboard_Push(#VK_V)
+    IO_Set_KeyDown(#VK_CONTROL)
+    IO_Set_KeyDown(#VK_V)
     Delay(100)
-    Keyboard_Release(#VK_CONTROL)
-    Keyboard_Release(#VK_V)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_KeyUp(#VK_CONTROL)
+    IO_Set_KeyUp(#VK_V)
+    IO_Set_Key(#VK_RETURN)
     Delay(100)
     
     ;Startmenü
-    Keyboard_PushAndRelease(#VK_TAB)
-    Keyboard_PushAndRelease(#VK_TAB)
-    Keyboard_PushAndRelease(#VK_SPACE)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_TAB)
+    IO_Set_Key(#VK_TAB)
+    IO_Set_Key(#VK_SPACE)
+    IO_Set_Key(#VK_RETURN)
     Delay(6000)
     ;Installation
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     Delay(200)
-    Keyboard_PushAndRelease(#VK_RETURN)
+    IO_Set_Key(#VK_RETURN)
     Delay(200)
     
     DeleteFile(GetTemporaryDirectory()+"TesseractInstaller.exe")
@@ -347,16 +357,18 @@ Global OCRMutex = CreateMutex()
 Global NewMap OCRStrings.s()
 Global NewMap OCRWatches()
 
+;{ Structures
 Structure OCRStruct
   Title.s
   x.i
   y.i
   w.i
   h.i
-EndStructure
-Procedure OCR(*Parameter.OCRStruct)
+EndStructure;}
+
+Procedure IO_Check_OCR(*Parameter.OCRStruct)
   Uniquename.s = Str(*Parameter\x)+Str(*Parameter\y)+Str(*Parameter\h)+Str(*Parameter\w)
-  img = MakeDesktopScreenshot()
+  img = IO_Get_Screenshot()
   ocrimage = GrabImage(img,#PB_Any,*Parameter\x,*Parameter\y,*Parameter\w,*Parameter\h)
   If Not IsImage(ocrimage)
     ProcedureReturn 0
@@ -379,7 +391,7 @@ Procedure OCR(*Parameter.OCRStruct)
   UnlockMutex(OCRMutex)
   
 EndProcedure
-Procedure.s SingleOCR(image,x,y,w,h)
+Procedure.s IO_Check_SingleOCR(image,x,y,w,h)
   If Not IsImage(image)
     ProcedureReturn ""
   EndIf
@@ -406,7 +418,7 @@ Procedure.s SingleOCR(image,x,y,w,h)
   ProcedureReturn ocrtext
   
 EndProcedure
-Procedure.s NumberOCR(image,x,y,w,h)
+Procedure.s IO_Check_NumberOCR(image,x,y,w,h)
   If Not IsImage(image)
     ProcedureReturn ""
   EndIf
@@ -433,42 +445,43 @@ Procedure.s NumberOCR(image,x,y,w,h)
   ProcedureReturn ocrtext
   
 EndProcedure
-Procedure InitReadStatusMessages(*ParameterIncoming.OCRStruct)
+Procedure IO_Check_InitReadStatusMessages(*ParameterIncoming.OCRStruct)
   ParameterInside.OCRStruct
   CopyStructure(*ParameterIncoming,ParameterInside,OCRStruct)
   Repeat
-    ocr(ParameterInside)
+    IO_Check_OCR(ParameterInside)
   ForEver
 EndProcedure
-Procedure.s OCRStatus(Text.s)
+Procedure.s IO_Get_OCRStatus(Text.s)
   LockMutex(OCRMutex)
   Text.s = OCRStrings(Text)
   UnlockMutex(OCRMutex)
   
   ProcedureReturn Text
 EndProcedure
-Procedure StartOCRWatch(x,y,w,h,Title.s)
+Procedure IO_Set_OCRWatch(x,y,w,h,Title.s)
   Parameter.OCRStruct
   Parameter\x = x
   Parameter\y = y
   Parameter\w = w
   Parameter\h = h
   Parameter\Title = Title
-  OCRWatches(Title) = CreateThread(@InitReadStatusMessages(),Parameter)
+  OCRWatches(Title) = CreateThread(@IO_Check_InitReadStatusMessages(),Parameter)
   Delay(100)
 EndProcedure
-Procedure StopOCRWatch(Title.s)
+Procedure IO_Set_StopOCRWatch(Title.s)
   KillThread(OCRWatches(Title))
   DeleteMapElement(OCRWatches(),Title)
 EndProcedure
 ;}
 
 ;{ Network-Protocols
+;{ Structures
 Structure PageNavigateReturn
   frameId.s
   loaderId.s
   errorText.s
-EndStructure
+EndStructure;}
 DeclareModule WebsocketClient
   Declare OpenWebsocketConnection(URL.s)
   Declare SendTextFrame(connection, message.s)
@@ -491,11 +504,11 @@ Module WebsocketClient
   ;TODO: We should send an closing frame, but server will also just close
   ;TODO: Support to send receive bigger frames
   debugmode = 0
-  
+  ;{ Structures
   Structure WebSocket
     Frametyp.i
     FrameMemory.i
-  EndStructure
+  EndStructure;}
   
   Declare Handshake(Connection, Servername.s, Path.s)
   Declare ApplyMasking(Array Mask.a(1), *Buffer)
@@ -760,6 +773,7 @@ EndModule
 ;}
 
 ;{ Chrome Automation
+;{ Structures
 Structure WebSocket
   Frametyp.i
   FrameMemory.i
@@ -787,9 +801,9 @@ Structure All
   Map Objects.co()
   Version.vs
   RequestId.i
-EndStructure
+EndStructure;}
 
-Global Chrome_DebugPort = 9222
+Global IO_Get_Chrome_DebugPort = 9222
 Global Chrome.All
 
 ;{ Internal Functions
@@ -812,12 +826,12 @@ Procedure   ChromeDefaultJson(json.i,Method.s)
   SetJSONObject(params)
   ProcedureReturn params
 EndProcedure
-Procedure   Chrome_OpenWebSocket(TabID.s)
+Procedure   IO_Get_Chrome_OpenWebSocket(TabID.s)
   Chrome\Objects(TabID)\WsConnection = WebsocketClient::OpenWebsocketConnection(Chrome\Objects(TabID)\webSocketDebuggerUrl)
   ProcedureReturn #True
 EndProcedure
 ;}
-Procedure.s Chrome_GetWebsocketResponse(connection,timeout = 0)
+Procedure.s IO_Get_Chrome_Response(connection,timeout = 0)
   p = ElapsedMilliseconds()
   Packet$ = ""
   Repeat
@@ -853,8 +867,8 @@ Procedure.s Chrome_GetWebsocketResponse(connection,timeout = 0)
 EndProcedure
 
 ;HTTP-Endpoints
-Procedure   Chrome_List()
-  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/list")
+Procedure   IO_Get_Chrome_List()
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/list")
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -872,8 +886,8 @@ Procedure   Chrome_List()
     FreeJSON(json)
   EndIf
 EndProcedure
-Procedure   Chrome_GetVersion()
-  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/version")
+Procedure   IO_Get_Chrome_Version()
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/version")
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -895,8 +909,8 @@ Procedure   Chrome_GetVersion()
   EndIf
   FreeJSON(json)
 EndProcedure
-Procedure.s Chrome_NewTab();Returns ID
-  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/new")
+Procedure.s IO_Set_Chrome_NewTab();Returns ID
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/new")
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -910,8 +924,8 @@ Procedure.s Chrome_NewTab();Returns ID
   EndIf
   ProcedureReturn MapKey(Chrome\Objects())
 EndProcedure
-Procedure   Chrome_ActivateTab(TabID.s)
-  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/activate/"+TabID)
+Procedure   IO_Set_Chrome_ActivateTab(TabID.s)
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/activate/"+TabID)
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -924,8 +938,8 @@ Procedure   Chrome_ActivateTab(TabID.s)
     ProcedureReturn 0
   EndIf
 EndProcedure
-Procedure   Chrome_CloseTab(TabID.s)
-  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(Chrome_DebugPort)+"/json/close/"+TabID)
+Procedure   IO_Set_Chrome_CloseTab(TabID.s)
+  HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/close/"+TabID)
   If HttpRequest
     Response$ = HTTPInfo(HTTPRequest, #PB_HTTP_Response)
     FinishHTTP(HTTPRequest)
@@ -940,8 +954,7 @@ Procedure   Chrome_CloseTab(TabID.s)
 EndProcedure
 
 ;Chrome Debug API
-
-Procedure.i Chrome_PageNavigate(TabID.s,*Returnvalue.PageNavigateReturn,url.s,referrer.s="",transitionType.i=-1,frameId.i=-1,referrerPolicy.i=-1)
+Procedure.i IO_Set_Chrome_PageNavigate(TabID.s,*Returnvalue.PageNavigateReturn,url.s,referrer.s="",transitionType.i=-1,frameId.i=-1,referrerPolicy.i=-1)
   json = CreateJSON(#PB_Any) 
   params = ChromeDefaultJson(json,"Page.navigate");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
   
@@ -954,10 +967,10 @@ Procedure.i Chrome_PageNavigate(TabID.s,*Returnvalue.PageNavigateReturn,url.s,re
   request$ = ComposeJSON(json):FreeJSON(json)
   ;Hau raus die Scheisse
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
-  Chrome_GetWebsocketResponse(Chrome\Objects(TabID)\WsConnection)
+  IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection)
   
 EndProcedure
-Procedure.s Chrome_DOMenable(TabID.s,enable)
+Procedure.s IO_Set_Chrome_DOMenable(TabID.s,enable)
   json = CreateJSON(#PB_Any) 
   
   If enable
@@ -969,23 +982,23 @@ Procedure.s Chrome_DOMenable(TabID.s,enable)
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
 EndProcedure
-Procedure Chrome_DOMgetDocument(TabID.s,depth.i=-1,pierce.b=0) ;NOT WORKING
+Procedure   IO_Get_Chrome_DOMgetDocument(TabID.s,depth.i=-1,pierce.b=0) ;NOT WORKING
   json = CreateJSON(#PB_Any) 
   
   params = ChromeDefaultJson(json,"DOM.getDocument");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
   SetJSONInteger(AddJSONMember(params, "depth"), depth)
   ;   SetJSONInteger(AddJSONMember(params, "pierce"), pierce)
   
-  Debug Chrome_GetWebsocketResponse(Chrome\Objects(TabID)\WsConnection,200)
+  Debug IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,200)
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
-  Result$ = Chrome_GetWebsocketResponse(Chrome\Objects(TabID)\WsConnection,5000)
+  Result$ = IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,5000)
   Debug Result$
   nodeID = Val(StringField(Mid(Result$,FindString(Result$,"nodeId"+Chr(34)+":")+8),1,","))
   
   ProcedureReturn NodeID ; I only want the root nodeID
 EndProcedure
-Procedure.s Chrome_DOMgetOuterHTML(TabID.s,NodeId.i=-1,BackendNodeId=-1,RuntomeRometObjectID.i=-1)
+Procedure.s IO_Get_Chrome_DOMgetOuterHTML(TabID.s,NodeId.i=-1,BackendNodeId=-1,RuntomeRometObjectID.i=-1)
   json = CreateJSON(#PB_Any) 
   
   params = ChromeDefaultJson(json,"DOM.getOuterHTML");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
@@ -995,10 +1008,10 @@ Procedure.s Chrome_DOMgetOuterHTML(TabID.s,NodeId.i=-1,BackendNodeId=-1,RuntomeR
   
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
-  Debug Chrome_GetWebsocketResponse(Chrome\Objects(TabID)\WsConnection,500)
+  Debug IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,500)
   
 EndProcedure
-Procedure.s Chrome_Runtimeenable(TabID.s,enable)
+Procedure.s IO_Set_Chrome_Runtimeenable(TabID.s,enable)
   json = CreateJSON(#PB_Any) 
   
   If enable
@@ -1009,7 +1022,7 @@ Procedure.s Chrome_Runtimeenable(TabID.s,enable)
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
 EndProcedure
-Procedure.s Chrome_Logenable(TabID.s,enable)
+Procedure.s IO_Set_Chrome_Logenable(TabID.s,enable)
   json = CreateJSON(#PB_Any) 
   
   If enable
@@ -1020,7 +1033,7 @@ Procedure.s Chrome_Logenable(TabID.s,enable)
   request$ = ComposeJSON(json):FreeJSON(json)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
 EndProcedure
-Procedure.s Chrome_Runtimeevaluate(TabID.s,expression.s)
+Procedure.s IO_Check_Chrome_Runtimeevaluate(TabID.s,expression.s)
   If Len(expression) = 0
     ProcedureReturn ""
   EndIf
@@ -1033,7 +1046,7 @@ Procedure.s Chrome_Runtimeevaluate(TabID.s,expression.s)
   WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
   
 EndProcedure
-Procedure Chrome_BrowsersetDownloadBehavior(behaviour.s,browserContextId=-1,downloadPath.s="",eventsEnabled=-1)
+Procedure   IO_Set_Chrome_BrowserDownloadBehavior(behaviour.s,browserContextId=-1,downloadPath.s="",eventsEnabled=-1)
   ;Not working?
   If Len(behaviour) = 0
     ProcedureReturn 0
@@ -1049,9 +1062,9 @@ Procedure Chrome_BrowsersetDownloadBehavior(behaviour.s,browserContextId=-1,down
   request$ = ComposeJSON(json):FreeJSON(json)
   
 EndProcedure
-Procedure.s Chrome_GetHMTL(TabID.s)
+Procedure.s IO_Get_Chrome_HMTL(TabID.s)
   
-  ; Bishierhin war noch alles gut. Jetzt kommt Dreck. Ausleiten des HTML als Download...
+  ;Warning This uses Javascript and can be detected by the website!
   Filename$ = "Controller_Download_Text"
   Filepath.s = GetUserDirectory(#PB_Directory_Downloads)+Filename$ +".txt"
   
@@ -1059,10 +1072,10 @@ Procedure.s Chrome_GetHMTL(TabID.s)
     DeleteFile(Filepath)
   EndIf
   
-  Chrome_Runtimeevaluate(TabID,"const data = new XMLSerializer().serializeToString(document); const a = document.createElement('a');const blob = new Blob([JSON.stringify(data)]);a.href = URL.createObjectURL(blob);a.download = '"+Filename$+"';a.click();")
+  IO_Check_Chrome_Runtimeevaluate(TabID,"const data = new XMLSerializer().serializeToString(document); const a = document.createElement('a');const blob = new Blob([JSON.stringify(data)]);a.href = URL.createObjectURL(blob);a.download = '"+Filename$+"';a.click();")
   Delay(600);min 450
   
-  ;Noch am schreiben?
+  
   Repeat
     Delay(10)
     f = ReadFile(#PB_Any,Filepath)
@@ -1075,17 +1088,17 @@ Procedure.s Chrome_GetHMTL(TabID.s)
 EndProcedure
 
 ;Javascript for Chrome
-Procedure Chrome_JS_ClickOnButtonByID(TabID.s,ButtonID.s)
-  Chrome_Runtimeevaluate(TabID,"document.getElementById('"+ButtonID+"').click();")
+Procedure IO_Set_Chrome_ClickOnButtonByID(TabID.s,ButtonID.s)
+  IO_Check_Chrome_Runtimeevaluate(TabID,"document.getElementById('"+ButtonID+"').click();")
 EndProcedure
-Procedure Chrome_JS_ClickOnButtonByClass(TabID.s,Classname.s)
-  Chrome_Runtimeevaluate(TabID,"document.querySelector('."+ReplaceString(Classname," ",".")+"').click();")
+Procedure IO_Set_Chrome_JS_ClickOnButtonByClass(TabID.s,Classname.s)
+  IO_Check_Chrome_Runtimeevaluate(TabID,"document.querySelector('."+ReplaceString(Classname," ",".")+"').click();")
 EndProcedure
 ;}
 
 ;{ Process Control <- Warning on slowdown!
+;{ Structures
 #SystemProcessInformation = $0005
-
 Structure _UNICODE_STRING Align #PB_Structure_AlignC
   usLength.w 
   usMaximumLength.w   
@@ -1114,10 +1127,10 @@ Structure ScanAllProcessesForClassAndTitleWithResultUIFields
 EndStructure
 Structure NestedList
   List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
-EndStructure
+EndStructure;}
 NewList Processlist.ProcessName()
 
-Procedure KillProcess (pid)
+Procedure IO_Set_KillProcess (pid)
   phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
   If phandle <> #Null
     If TerminateProcess_ (phandle, 1)
@@ -1127,7 +1140,7 @@ Procedure KillProcess (pid)
   EndIf
   ProcedureReturn result
 EndProcedure
-Procedure GetAllProcess(List Processlist.ProcessName()) 
+Procedure IO_Get_AllProcess(List Processlist.ProcessName()) 
   #SystemProcessInformation = $0005
   Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
   NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
@@ -1150,17 +1163,17 @@ Procedure GetAllProcess(List Processlist.ProcessName())
     EndIf
   EndIf
 EndProcedure
-Procedure CloseProcessByName(filename.s);not title!
+Procedure IO_Set_CloseProcessByName(filename.s);not title!
   NewList Processlist.ProcessName()
-  GetAllProcess(Processlist())
+  IO_Get_AllProcess(Processlist())
   ForEach Processlist()
     If Processlist()\Name = filename
-      KillProcess(Processlist()\PID)
+      IO_Set_KillProcess(Processlist()\PID)
     EndIf
   Next
 EndProcedure
 
-Procedure AllProcessAndPID()
+Procedure IO_Get_AllProcessAndPID()
   Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
   
   NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
@@ -1181,7 +1194,7 @@ Procedure AllProcessAndPID()
     EndIf
   EndIf
 EndProcedure
-Procedure CheckRunningExe(FileName.s)
+Procedure IO_Check_RunningExe(FileName.s)
   Protected snap.l , Proc32.PROCESSENTRY32 , dll_kernel32.l
   FileName = GetFilePart( FileName )
   dll_kernel32 = OpenLibrary (#PB_Any, "kernel32.dll")
@@ -1210,7 +1223,7 @@ Procedure CheckRunningExe(FileName.s)
   EndIf
   ProcedureReturn #False
 EndProcedure
-Procedure FindHwndByPart(Text$)
+Procedure IO_Get_HwndByTitle(Text$)
   Repeat
     ;hWnd = FindWindowEx_(0, hWnd, @"NotePad", 0)
     hWnd = FindWindowEx_(0, hWnd, 0, 0)
@@ -1224,28 +1237,28 @@ Procedure FindHwndByPart(Text$)
     EndIf
   Until hWnd = 0
 EndProcedure
-Procedure FocusWindow(Title.s)
+Procedure IO_Set_FocusWindowByTitle(Title.s)
   hwnd = FindWindow_(0,Title)
   SetForegroundWindow_(hwnd)
   Delay(1)
   ProcedureReturn hwnd
 EndProcedure
-Procedure MaxWindow(hwnd)
+Procedure IO_Set_MaxWindow(hwnd)
   SetWindowPos_(hwnd,0,-8,-31,DesktopWidth(0)+16,DesktopHeight(0)-2,0)
 EndProcedure
-Procedure TitleToHwnd(Title.s)
+Procedure IO_Get_TitleToHwnd(Title.s)
   ProcedureReturn FindWindow_(0,Title)
 EndProcedure
-Procedure HwndToPID(hwnd)
+Procedure IO_Get_HwndToPID(hwnd)
   PID.i
   GetWindowThreadProcessId_(hwnd, @PID)
   ProcedureReturn PID
 EndProcedure
 
-;!BEWARNED!
-;These functions are hard For the AV And might 1) cause loading issues 2) trigger false-positives
-Declare.s GetHwndText(hwnd.i)
-Procedure ScanHwndForAllText(hWnd.i, Map Result.s(),Prefix.s = "")
+;!WARNING!
+;These functions are hard for the AV and might 1) cause loading issues 2) trigger false-positives
+Declare.s IO_Get_HwndText(hwnd.i)
+Procedure IO_Get_HwndForAllText(hWnd.i, Map Result.s(),Prefix.s = "")
   Protected nexthwnd.i, szClass.s{1024}, szText.s{2048}
   nexthwnd = GetWindow_(hwnd, #GW_CHILD | #GW_HWNDFIRST)
   While nexthwnd <> 0
@@ -1253,20 +1266,20 @@ Procedure ScanHwndForAllText(hWnd.i, Map Result.s(),Prefix.s = "")
     GetWindowText_(nexthwnd, @szText, SizeOf(szText))
     SendMessage_(nexthwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText) ; Unicode Support
     Result("hwnd: "+Str(nexthwnd) + " Class: "+ Prefix + szClass) = szText
-    ScanHwndForAllText(nexthwnd,Result(),szClass+"\")
+    IO_Get_HwndForAllText(nexthwnd,Result(),szClass+"\")
     CloseHandle_(nexthwnd)
     nexthwnd = GetWindow_(nexthwnd, #GW_HWNDNEXT)
   Wend
   
 EndProcedure
-Procedure cbEnumParentsWithCallback(hWnd.i, *FunctionPointer)
+Procedure IO_Set_EnumParentsWithCallback(hWnd.i, *FunctionPointer)
   Protected szClass.s{1024}, szText.s{2048}
   GetClassName_(hWnd, @szClass, SizeOf(szClass))
   GetWindowText_(hWnd, @szText, SizeOf(szText))
   CallFunctionFast(*FunctionPointer,hwnd,@szClass,@szText)
   ProcedureReturn 1
 EndProcedure
-Procedure cbEnumParentsWithResult(hWnd.i, *Result.NestedList)
+Procedure IO_Get_EnumParentsWithResult(hWnd.i, *Result.NestedList)
   Protected szClass.s{1024}, szText.s{2048}
   GetClassName_(hWnd, @szClass, SizeOf(szClass))
   GetWindowText_(hWnd, @szText, SizeOf(szText))
@@ -1276,43 +1289,43 @@ Procedure cbEnumParentsWithResult(hWnd.i, *Result.NestedList)
   
   ;If the 1kb Buffer was too small, use the 100kb buffer
   If Len(szText) > 1000
-    *Result\Nested()\Text =  gethwndtext(hWnd)
+    *Result\Nested()\Text =  IO_Get_HwndText(hWnd)
   Else
     *Result\Nested()\Text = szText
   EndIf
   
   ProcedureReturn 1
 EndProcedure
-Procedure ScanAllProcessesForClassAndTitleWithCustomFunction(*CallbackFunctionPointer)
-  EnumWindows_(@cbEnumParentsWithCallback(),*CallbackFunctionPointer)
+Procedure IO_Get_AllProcessClassCallback(*CallbackFunctionPointer)
+  EnumWindows_(@IO_Set_EnumParentsWithCallback(),*CallbackFunctionPointer)
   ;{ EXAMPLE
   
-  ; Procedure CallBack_EnumParents(PID,Class.s,Text.s)
+  ; Procedure CallBack(PID,Class.s,Text.s)
   ;   Debug Str(PID)+Chr(9)+Class+": "+Text
   ; EndProcedure
   ; 
-  ; ScanAllProcessesForClassAndTitle(@CallBack_EnumParents())
+  ; IO_Get_AllTitleProcessesClassByCallback(@CallBack())
   ;}
 EndProcedure
-Procedure ScanAllProcessesForClassAndTitleWithResult(*ResultList)
-  EnumWindows_(@cbEnumParentsWithResult(),*ResultList)
+Procedure IO_Get_AllProcessClassResult(*ResultList)
+  EnumWindows_(@IO_Get_EnumParentsWithResult(),*ResultList)
   ;Example
   ;   ResultList.NestedList                                   
-  ;   ScanAllProcessesForClassAndTitleWithResult(@ResultList)
+  ;   IO_Get_AllProcessClassResult(@ResultList)
   ;   ForEach ResultList\Nested()
   ;     Debug Str(ResultList\Nested()\hwnd)+Chr(9)+ResultList\Nested()\Class+Chr(9)+ResultList\Nested()\Text
   ;   Next
 EndProcedure
 
-Procedure.s GetHwndText(hwnd.i) ; Supports 100kb long texts - way more then ScanHwndForClassAndText() (1kb)
-  szText.s{100000}              ;100kb - Don't overflow the stack maximum on test before overflow= 514882
+Procedure.s IO_Get_HwndText(hwnd.i) ; Supports 100kb long texts - way more then ScanHwndForClassAndText() (1kb)
+  szText.s{100000}                  ;100kb - Don't overflow the stack maximum on test before overflow= 514882
   SendMessage_(hwnd, #WM_GETTEXT, SizeOf(szText)/2, @szText)
   ProcedureReturn szText
 EndProcedure
-Procedure SearchTextOnWinUI(Text.s,ResultNr=1) ; Returns the hwnd - searches all titles, classes and content
+Procedure IO_Get_HwndByTextFromWinUI(Text.s,ResultNr=1) ; Returns the hwnd - searches all titles, classes and content
   ResultList.NestedList
   NewMap TempResultMap.s()
-  ScanAllProcessesForClassAndTitleWithResult(@ResultList)
+  IO_Get_AllProcessClassResult(@ResultList)
   Hit = 0
   ForEach ResultList\Nested()
     If Len(ResultList\Nested()\Text) = 0
@@ -1326,7 +1339,7 @@ Procedure SearchTextOnWinUI(Text.s,ResultNr=1) ; Returns the hwnd - searches all
       
     Else
       ;If not in title and class- maybe in content?
-      ScanHwndForAllText(ResultList\Nested()\hwnd,TempResultMap())
+      IO_Get_HwndForAllText(ResultList\Nested()\hwnd,TempResultMap())
       ForEach TempResultMap()
         If FindString(TempResultMap(),text)
           Key$ = MapKey(TempResultMap())
@@ -1347,7 +1360,7 @@ EndProcedure
 
 ;{ Process Memory Read
 
-Procedure.i GetModule(ProcessId.l, ModuleName.s)
+Procedure.i IO_Get_Module(ProcessId.l, ModuleName.s)
   kernel32=OpenLibrary(#PB_Any, "kernel32.dll")
   ;Handle für externen Prozess 
   Protected snapShot.i
@@ -1386,7 +1399,7 @@ Procedure.i GetModule(ProcessId.l, ModuleName.s)
   ProcedureReturn 0
 EndProcedure
 
-Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
+Procedure.l IO_Get_ValueByPointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
   ;Wenn der Speicher einer DLL angehört statt dem eigentlichen Prozess
   ;ModuleName$ z.b. "mono.dll"
   If hProcess<=0
@@ -1398,7 +1411,7 @@ Procedure.l PointerWalk(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
   EndIf
   
   If Len(moduleAddress$) > 0
-    moduleAddress=GetModule(PID, ModuleName$)
+    moduleAddress=IO_Get_Module(PID, ModuleName$)
   EndIf
   
   FirstElement(Offsets())
@@ -1417,11 +1430,12 @@ EndProcedure
 ;}
 
 CompilerIf Not #PB_Compiler_IsIncludeFile
-   Debug "Only use me by include"
+  Debug "Only use me by include"
 CompilerEndIf
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 93
-; Folding = AAICAAAAAAAACAAA-
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; CursorPosition = 1422
+; FirstLine = 1407
+; Folding = -----------------
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

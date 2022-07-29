@@ -726,6 +726,64 @@ NewList TestDataset.FileAndType()
 ;}
 
 ;{ Network-Protocols
+Procedure IO_Set_SendICMP(*Data,Length,IPv4.l, TimeOut=1000,MTU=1400)
+  Protected hFile = IcmpCreateFile_()
+  Protected Res 
+  Protected *Out.ICMP_ECHO_REPLY = AllocateMemory(SizeOf(ICMP_ECHO_REPLY) + 32)
+  
+  If mtu < 33
+    ProcedureReturn -1
+  EndIf
+  
+  MTU = MTU - 32 ; Header
+  MTU = MTU - 16 ; CRC (MD5-32 Bit Aber nur 16 gehen raus)
+  Counter = 0
+  
+  Offset = 0
+  While length > 0
+    If Length > MTU 
+      l = MTU
+    Else 
+      l = Length
+    EndIf
+    Counter =Counter +l
+    
+    PaketData = AllocateMemory(l+16)
+    CopyMemory(*Data + Offset,PaketData,l)
+    MD5$ = Fingerprint(PaketData,l,#PB_Cipher_MD5)
+    For x = 0 To 15
+      PokeA(PaketData+l+x,Val("$"+Mid(MD5$,1+x*2,2)))
+    Next
+    
+    If IcmpSendEcho_(hFile, IPv4, PaketData, l+16, 0, *Out, MemorySize(*Out), TimeOut) And *Out\Status = 0
+      Res = *Out\RoundTripTime
+    Else
+      Res = -1
+    EndIf
+    FreeMemory(PaketData)
+    Offset = Offset + l
+    length = Length - l
+  Wend
+  
+  IcmpCloseHandle_(hFile)
+  FreeMemory(*Out)
+  
+  ProcedureReturn Counter
+EndProcedure
+Procedure ReadICMPPaket(*Data,Length)
+  If Length <= 16+32
+    ProcedureReturn 0
+  EndIf
+  MD5$ = Left(Fingerprint(*Data+32,Length-16-32,#PB_Cipher_MD5),32);32 Nibble
+  MD52$ = "" 
+  For x = 0 To 15
+    MD52$ = MD52$ + RSet(Hex(PeekA(*Data+Length-16+x)),2,"0")
+  Next
+  If UCase(MD5$) = UCase(MD52$)
+    ShowMemoryViewer(*Data+32,length-32-16)
+    ProcedureReturn 1
+  EndIf
+EndProcedure
 ;{ Sniffing (disabled - needs dll/
 ;{ Structures
 Structure PageNavigateReturn
@@ -1164,64 +1222,6 @@ Module WebsocketClient
   EndProcedure
   
 EndModule
-Procedure IO_Set_SendICMP(*Data,Length,IPv4.l, TimeOut=1000,MTU=1400)
-  Protected hFile = IcmpCreateFile_()
-  Protected Res 
-  Protected *Out.ICMP_ECHO_REPLY = AllocateMemory(SizeOf(ICMP_ECHO_REPLY) + 32)
-  
-  If mtu < 33
-    ProcedureReturn -1
-  EndIf
-  
-  MTU = MTU - 32 ; Header
-  MTU = MTU - 16 ; CRC (MD5-32 Bit Aber nur 16 gehen raus)
-  Counter = 0
-  
-  Offset = 0
-  While length > 0
-    If Length > MTU 
-      l = MTU
-    Else 
-      l = Length
-    EndIf
-    Counter =Counter +l
-    
-    PaketData = AllocateMemory(l+16)
-    CopyMemory(*Data + Offset,PaketData,l)
-    MD5$ = Fingerprint(PaketData,l,#PB_Cipher_MD5)
-    For x = 0 To 15
-      PokeA(PaketData+l+x,Val("$"+Mid(MD5$,1+x*2,2)))
-    Next
-    
-    If IcmpSendEcho_(hFile, IPv4, PaketData, l+16, 0, *Out, MemorySize(*Out), TimeOut) And *Out\Status = 0
-      Res = *Out\RoundTripTime
-    Else
-      Res = -1
-    EndIf
-    FreeMemory(PaketData)
-    Offset = Offset + l
-    length = Length - l
-  Wend
-  
-  IcmpCloseHandle_(hFile)
-  FreeMemory(*Out)
-  
-  ProcedureReturn Counter
-EndProcedure
-Procedure ReadICMPPaket(*Data,Length)
-  If Length <= 16+32
-    ProcedureReturn 0
-  EndIf
-  MD5$ = Left(Fingerprint(*Data+32,Length-16-32,#PB_Cipher_MD5),32);32 Nibble
-  MD52$ = "" 
-  For x = 0 To 15
-    MD52$ = MD52$ + RSet(Hex(PeekA(*Data+Length-16+x)),2,"0")
-  Next
-  If UCase(MD5$) = UCase(MD52$)
-    ShowMemoryViewer(*Data+32,length-32-16)
-    ProcedureReturn 1
-  EndIf
-EndProcedure
 
 ;{ Constants
 #MIB_IF_TYPE_OTHER = 1
@@ -3250,9 +3250,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 19
-; FirstLine = 5
-; Folding = AAAAAAAAAAAAAAAAAAAAAgBAAAg
+; CursorPosition = 3247
+; FirstLine = 35
+; Folding = AAAAAAAAAAAIAAAAAAAAAgBAAAg
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

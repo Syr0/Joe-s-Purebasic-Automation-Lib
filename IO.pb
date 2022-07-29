@@ -17,7 +17,9 @@ ExamineDesktops()
 ;IO_Get_xxx()
 ;IO_Check_xx()
 
-
+;---------------------------
+; API
+;---------------------------
 ;{ Mouse Input Simulation
 Procedure IO_Set_SetMousePos(x,y)
   SetCursorPos_(x,y)
@@ -155,6 +157,157 @@ EndProcedure
 
 ;}
 
+;---------------------------
+;Purebasic
+;---------------------------
+;{ AI
+
+Structure DataSet
+  Array Input.d(0)
+  Array Trainingsoutput.d(0)
+EndStructure
+
+Structure Layer
+  Array Neurons.d(0)
+  Array Weights.d(0)
+EndStructure
+
+Structure Errors
+  Array Neuron.d(0)
+EndStructure
+
+Structure NetCollect
+  List NN.Layer()
+  Result.d
+EndStructure
+
+Global LearnConstant.d = 0.3
+
+Procedure IO_Set_NN_CreateNet(List NewNeuralNetwork.layer(),List Params())
+  position = 0
+  ForEach Params()
+    position +1
+    AddElement(NewNeuralNetwork())
+    layersize = Params()
+    Dim NewNeuralNetwork()\Neurons(layersize-1)
+    If position >= 2
+      Dim NewNeuralNetwork()\Weights(layersize*lastlayersize-1)
+      For x.l = 0 To layersize*lastlayersize-1
+        NewNeuralNetwork()\Weights(x) = Random(200) / 100 -1
+      Next
+    EndIf
+    lastlayersize = layersize
+  Next
+EndProcedure
+
+Procedure.d IO_Set_NN_Propagade(List Network.layer(),*DataS.Dataset,Train=0) ;selects a random dataset entry
+                                                                      ;Loading into INPUT-Layer
+  FirstElement(Network())
+  Neurons = ArraySize(Network()\Neurons())+1
+  For x = 1 To Neurons
+    Network()\Neurons(x-1) = *DataS\Input(x-1)
+  Next
+  oldNeurons = Neurons
+  
+  ;Propagade
+  While NextElement(Network())
+    Neurons = ArraySize(Network()\Neurons())+1
+    For c = 0 To Neurons -1
+      temp.d = 0
+      For y = 0 To oldNeurons - 1
+        PreviousElement(Network())
+        neuro.d = Network()\Neurons(y)
+        NextElement(Network())
+        temp + neuro * Network()\Weights(y * Neurons + c)
+      Next
+      ;Sigmoid
+      Network()\Neurons(c) = 1/(1+Exp(-temp))
+    Next
+    oldNeurons = Neurons
+  Wend
+  
+  ;Error calculation
+  NewList Difference.Errors()
+  AddElement(Difference())
+  LastElement(Network())
+  Dim Difference()\Neuron(ArraySize(Network()\Neurons()))
+  
+  m = ArraySize(Network()\Neurons())
+  For z = 0 To m
+    Ergebnis_neuron_z = Network()\Neurons(z)
+    Difference()\Neuron(z) = (*DataS\Trainingsoutput(z) - Network()\Neurons(z)) * (1.0 -Network()\Neurons(z))
+  Next
+  
+  While ListIndex(Network()) > 0
+    mix = ArraySize(Network()\Neurons())
+    PreviousElement(Network())
+    max = ArraySize(Network()\Neurons())
+    
+    InsertElement(Difference())
+    Dim Difference()\Neuron(max)
+    
+    For x = 0 To max
+      Fehler1.d = 0 
+      NextElement(Network())
+      NextElement(Difference())
+      For y = 0 To mix
+        Fehler1 = Fehler1 +  Difference()\Neuron(y) * Network()\Weights(x*(mix+1)+y)
+      Next
+      PreviousElement(Difference())
+      PreviousElement(Network())
+      Difference()\Neuron(x) = Network()\Neurons(x) * (1.0 - Network()\Neurons(x)) * Fehler1
+    Next
+  Wend
+  
+  ;Backpropagade
+  If Train = 1
+    LastElement(Difference())
+    LastElement(Network())
+    While ListIndex(Network()) > 0
+      PreviousElement(Network())
+      max = ArraySize(Network()\Neurons())
+      NextElement(Network())
+      mix = ArraySize(Network()\Neurons())
+      For x = 0 To max
+        PreviousElement(Network())
+        neuro.d = Network()\Neurons(x)
+        NextElement(Network())
+        For y = 0 To mix
+          Network()\Weights(x*(mix+1)+y) = Network()\Weights(x*(mix+1)+y) + (LearnConstant * Difference()\Neuron(y)) * neuro
+        Next
+      Next
+      PreviousElement(Difference())
+      PreviousElement(Network())
+    Wend
+  EndIf
+  
+EndProcedure
+
+Procedure IO_Set_NN_Savenet(Path.s,List network.layer())
+  json = CreateJSON(#PB_Any)
+  InsertJSONList(JSONValue(json),network())
+  SaveJSON(json,Path)
+  FreeJSON(json)
+EndProcedure
+
+Procedure IO_Set_NN_Loadnet(Path.s,List network.layer())
+  json = LoadJSON(#PB_Any,Path)
+  ExtractJSONList(JSONValue(json),network())
+  FreeJSON(json)
+EndProcedure
+
+ ;Example
+; NewList Neural_params()
+; AddElement(Neural_params()) : Neural_params() = Pow(256,2)
+; AddElement(Neural_params()) : Neural_params() = 256
+; AddElement(Neural_params()) : Neural_params() = 128
+; AddElement(Neural_params()) : Neural_params() = 6
+; 
+; NewList Neural_network.layer()
+; CreateNet(Neural_network(),Neural_params())
+
+;}
+
 ;{ Visual Output
 ;{ Structures
 Structure Pixels
@@ -262,7 +415,7 @@ Procedure IO_Set_TextOnScreen(Text.s,x,y)
 EndProcedure
 ;}
 
-;{ OCR-Install
+;{ OCR-Install Tesseract
 Procedure IO_Set_DownloadTesseract()
   Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
   DownloadSize = 56237870
@@ -359,7 +512,7 @@ Procedure IO_Set_GuidedTesseractInstall()
 EndProcedure
 ;}
 
-;{ OCR Use
+;{ OCR Use Tesseract
 Global TesseractExe.s = GetCurrentDirectory()+"Tesseract\tesseract.exe"
 Global OCRMutex = CreateMutex()
 Global NewMap OCRStrings.s()
@@ -483,7 +636,11 @@ Procedure IO_Set_StopOCRWatch(Title.s)
 EndProcedure
 ;}
 
-;{ Image-Classification
+;---------------------------
+;Using external Tools
+;---------------------------
+
+;{ Image-Classification WEKA
 
 Structure FileAndType
   Filepath.s
@@ -555,10 +712,6 @@ If Len(javapath) <= 0
   End
 EndIf
 EndProcedure
-
-
-
-
 
 Procedure.s IO_Get_Weka_Internal_ImageFilter_Extract_Features(ArffFile.s,DatasetPath.s,Filter.s="FCTH") ; TODO: Filter MAGIC HAPPENS HERE!
   FeaturesFile.s = GetTemporaryDirectory()+"features.arff"
@@ -3245,14 +3398,13 @@ DataSection
 EndDataSection
 ;}
 
-
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3247
-; FirstLine = 35
-; Folding = AAAAAAAAAAAIAAAAAAAAAgBAAAg
+; CursorPosition = 309
+; FirstLine = 32
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAw
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

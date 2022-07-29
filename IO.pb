@@ -2796,6 +2796,119 @@ Procedure.s IO_Get_DllCompilationDate(File.s)
 EndProcedure
 ;}
 
+;{ Audio
+
+;{ Structures
+Structure WAVEHeader
+  MagicBytes.l
+  Filesize.l
+  Text.q
+  ChuckSize.l
+  Compression.w
+  Channels.w
+  samplerate.l
+  avBytesPerSecons.l
+  BlockAlign.w
+  bitPerSample.w
+  dataText.l
+  avBytesTotal.l
+EndStructure
+Structure Note
+  StartMs.i
+  DurationMs.i
+  Frequency.i
+EndStructure;}
+
+Procedure IO_Set_CreateMusic(List Note.Note(),channels=1,bitrate=16,samplerate=44100)
+  
+  ;{ #Pb_Any Catching
+  If channels = #PB_Any : channels = 1: EndIf
+  If bitrate = #PB_Any : bitrate = 16: EndIf
+  ;}
+  
+  ;{ Missing input Catching
+  If ListSize(Note()) <= 0 : MessageRequester("Error","no notes given") : EndIf
+  ;}
+  
+  ;{ Calculate Duration
+  TotalDuration = 0
+  ForEach Note()
+    current = Note()\StartMs + Note()\DurationMs
+    If TotalDuration < current
+      TotalDuration = current
+    EndIf
+  Next
+  SecUpRounded = Round(TotalDuration/1000,#PB_Round_Up)
+  ;}
+  
+  ;{ Create a WAVE Header
+  avBytesPerSec.l = channels * bitrate / 8 * samplerate  ; calculate the average bytes per second  
+  
+  Waveheader.Waveheader
+  Waveheader\MagicBytes = $46464952 ;Backwards, LittleEndian
+  Waveheader\Filesize = 36 + avBytesPerSec * SecUpRounded
+  Waveheader\Text = $20746d6645564157
+  Waveheader\ChuckSize = 16
+  Waveheader\Compression = 1
+  Waveheader\Channels = channels
+  Waveheader\samplerate = samplerate
+  Waveheader\avBytesPerSecons = avBytesPerSec
+  Waveheader\BlockAlign = bitrate / 8 * channels
+  Waveheader\bitPerSample = bitrate
+  Waveheader\dataText = $61746164 ;Backwards, LittleEndian
+  Waveheader\avBytesTotal = avBytesPerSec*SecUpRounded
+  
+  WaveHeaderSize = SizeOf(Waveheader)
+  ;}
+  
+  ;{ Allocate Memory for the whole song
+  Memory = AllocateMemory(WaveHeaderSize + SecUpRounded * samplerate * (bitrate / 8))
+  ; Copy the Wave-Header to the first 44 Bytes
+  CopyMemory(Waveheader,Memory,WaveHeaderSize)
+  ;}
+  
+  ;{ Start calculating the samples
+ 
+  Protected sample.w  ;(signed RAW data)
+   
+  For acttime = 1 To samplerate * SecUpRounded
+    ProgressMs.f = acttime / samplerate * 1000
+    For actchannel = 1 To channels  
+      Sum = 0 : TempSample.f = 0
+      ForEach Note()
+        If ProgressMs >= Note()\StartMs And ProgressMs <= Note()\StartMs + Note()\DurationMs
+          Sum +1 ; Sum of Tones for later division (normalisation)
+          TempSample + Sin(2 * #PI * Note()\Frequency * acttime / samplerate)
+        EndIf
+      Next
+      If Not sum
+        Continue
+      EndIf
+      Sample = 32767 * (TempSample / Sum)
+      PokeW(Memory + WaveHeaderSize + acttime*2 ,sample)
+    Next  
+  Next  
+  ;}
+  
+  ProcedureReturn Memory
+EndProcedure
+
+;Example
+; NewList Notes.Note()
+;  AddElement(Notes()) : Notes()\StartMs =   0 : Notes()\Frequency = 220 : Notes()\DurationMs = 500
+;  AddElement(Notes()) : Notes()\StartMs = 500 : Notes()\Frequency = 420 : Notes()\DurationMs = 500
+;  AddElement(Notes()) : Notes()\StartMs = 500 : Notes()\Frequency = 220 : Notes()\DurationMs = 3500
+; 
+;  Mem = IO_Set_CreateMusic(Notes())
+;  
+;   Sound = CatchSound(#PB_Any,Mem)
+;   PlaySound(sound)
+;   Delay(3000)
+;  
+;   FreeMemory(mem)
+  
+;}
+
 ;{ String-magic
 Procedure IO_Check_Regex(Regex.s)
   If CreateRegularExpression(0, Regex)
@@ -3137,9 +3250,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me by include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 12
-; FirstLine = 3
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 19
+; FirstLine = 5
+; Folding = AAAAAAAAAAAAAAAAAAAAAgBAAAg
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

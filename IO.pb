@@ -201,7 +201,7 @@ CompilerIf 1=1
     EndIf
     ProcedureReturn result
   EndProcedure
-  Procedure IO_Get_AllProcess(List Processlist.ProcessName()) 
+  Procedure IO_Get_AllProcess(List Processlist.ProcessName())
     #SystemProcessInformation = $0005
     Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
     NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
@@ -630,7 +630,7 @@ CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
 ;--------------------------;
-CompilerIf 1=0
+CompilerIf 1=1
   ;{ AI
   
   Structure DataSet
@@ -1187,18 +1187,18 @@ CompilerIf 1=0
   
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
-  MonthToNum("Januar") = 01
-  MonthToNum("Februar") = 02
-  MonthToNum("März") = 03
-  MonthToNum("April") = 04
-  MonthToNum("Mai") = 05
-  MonthToNum("Juni") = 06
-  MonthToNum("Juli") = 07
-  MonthToNum("August") = 08
-  MonthToNum("September") = 09
-  MonthToNum("Oktober") = 10
-  MonthToNum("November") = 11
-  MonthToNum("Dezember") = 12;}
+  IO_Get_MonthToNum("Januar") = 01
+  IO_Get_MonthToNum("Februar") = 02
+  IO_Get_MonthToNum("März") = 03
+  IO_Get_MonthToNum("April") = 04
+  IO_Get_MonthToNum("Mai") = 05
+  IO_Get_MonthToNum("Juni") = 06
+  IO_Get_MonthToNum("Juli") = 07
+  IO_Get_MonthToNum("August") = 08
+  IO_Get_MonthToNum("September") = 09
+  IO_Get_MonthToNum("Oktober") = 10
+  IO_Get_MonthToNum("November") = 11
+  IO_Get_MonthToNum("Dezember") = 12;}
                              ;}
   
 CompilerEndIf
@@ -3407,9 +3407,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1204
-; FirstLine = 38
-; Folding = BAAAAAAAQAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 184
+; FirstLine = 50
+; Folding = BAAwGAAAAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

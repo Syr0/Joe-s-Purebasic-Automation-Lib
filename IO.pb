@@ -1205,7 +1205,7 @@ CompilerEndIf
 ;--------------------------;
 ;   Using external Tools   ;
 ;--------------------------;
-CompilerIf 1=0
+CompilerIf 1=1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
     Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
@@ -2945,6 +2945,10 @@ CompilerIf 1=0
   ;}
   
   ;{ Chrome Automation
+  ;NOTE: Start Chrome with debug mode on to use these functions:
+  ;chrome.exe --remote-debugging-port=9222
+  
+  
   ;{ Structures
   Structure WebSocket
     Frametyp.i
@@ -2974,6 +2978,7 @@ CompilerIf 1=0
     Version.vs
     RequestId.i
   EndStructure;}
+  
   
   Global IO_Get_Chrome_DebugPort = 9222
   Global Chrome.All
@@ -3407,9 +3412,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 184
-; FirstLine = 50
-; Folding = BAAwGAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 2949
+; FirstLine = 12
+; Folding = AAAAAAAAAAAgAAACAAAAAAACAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

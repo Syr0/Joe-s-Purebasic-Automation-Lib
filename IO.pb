@@ -420,6 +420,14 @@ CompilerIf 1=1
   ;}
   
   ;{ Process Memory Read
+  ;{ Structures
+  Structure MemoryResult
+    Adress.i
+    Offset.i
+    Type.i
+    String.s
+    length.i
+  EndStructure;}
   Procedure IO_Get_ModBaseAddr(ProcessId.i, ModuleName.s)
     Protected handle.i
     Protected me32.MODULEENTRY32
@@ -532,7 +540,80 @@ CompilerIf 1=1
       Next
     EndIf
   EndProcedure
+  Procedure IO_Check_MemScanForValue(ProcessId,List Results.MemoryResult(), *Value, ValueType)
+    
+    *mbi.MEMORY_BASIC_INFORMATION = AllocateMemory(SizeOf(MEMORY_BASIC_INFORMATION))
+    address=0
+    
+    If ValueType = #PB_String
+      String$ = PeekS(*Value)
+      len=Len(String$)
+    ElseIf ValueType = #PB_Integer
+      Value = PeekI(*value)
+      Len = 4
+    EndIf
+    
+    CompilerIf #PB_Compiler_Unicode = #True
+      len * 2
+    CompilerEndIf
+    
+    
+    hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, #False, ProcessId)
+    
+    Repeat
+      result=VirtualQueryEx_(hProcess, address, *mbi, SizeOf(MEMORY_BASIC_INFORMATION))
+      
+      If *mbi\State = #MEM_COMMIT And *mbi\Protect <> #PAGE_READONLY And *mbi\Protect <> #PAGE_EXECUTE_READ And *mbi\Protect <> #PAGE_GUARD And *mbi\Protect <> #PAGE_NOACCESS
+        sBuffer=AllocateMemory(*mbi\RegionSize)
+        res=ReadProcessMemory_(hProcess, address, sBuffer, *mbi\RegionSize, @written)
+        
+        written - len
+        If written > 0
+          For x = 0 To written
+            If ValueType = #PB_String
+              If CompareMemory(sBuffer + x, @String$, len)
+                AddElement(Results())
+                results()\Adress = *mbi\BaseAddress
+                results()\Offset = x
+                results()\length = len
+                Results()\Type = ValueType
+                Results()\String = PeekS(sBuffer + x,Len)
+              EndIf
+            ElseIf ValueType = #PB_Integer
+              If tmp=Value
+                AddElement(Results())
+                results()\Adress = *mbi\BaseAddress
+                results()\Offset = x
+                results()\length = len
+                Results()\Type = ValueType
+                Results()\String = Str(PeekL(sBuffer+x))
+              EndIf
+            EndIf
+          Next
+        EndIf 
+        FreeMemory(sBuffer)
+      EndIf
+      address=*mbi\BaseAddress+*mbi\RegionSize
+      
+    Until result=0
+  EndProcedure
+  ;{ EXAMPLE
+  ;     HWND = FindWindow_(NULL, "*Unbenannt - Editor")
+  ;     GetWindowThreadProcessId_(HWND, @pid)
+  ;     findString$="LOL123LOL456"
+  ;     
+  ;     
+  ;     NewList Results.MemoryResult()
+  ;     IO_Check_MemScanForValue(pid,Results(),@findString$,#PB_String)
+  ;     ForEach Results()
+  ;       
+  ;       Debug Hex(Results()\Adress)+" + "+ Hex(Results()\Offset)
+  ;       Debug Results()\String
+  ;       Debug Results()\Type
+  ;       
+  ;     Next 
   ;}
+  
   
   ;{ Util - System
   #PDH_NO_DATA = $A00007D5              ;For CPU Usage %
@@ -625,6 +706,7 @@ CompilerIf 1=1
     Next  
     ProcedureReturn StrF(megaRetcode / CpuCount, 1) + "%"
   EndProcedure
+  ;}
   ;}
 CompilerEndIf
 ;--------------------------;
@@ -1199,7 +1281,7 @@ CompilerIf 1=1
   IO_Get_MonthToNum("Oktober") = 10
   IO_Get_MonthToNum("November") = 11
   IO_Get_MonthToNum("Dezember") = 12;}
-                             ;}
+                                    ;}
   
 CompilerEndIf
 ;--------------------------;
@@ -3412,9 +3494,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2949
-; FirstLine = 12
-; Folding = AAAAAAAAAAAgAAACAAAAAAACAAAA9
+; CursorPosition = 693
+; FirstLine = 2
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

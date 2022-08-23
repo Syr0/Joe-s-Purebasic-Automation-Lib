@@ -21,7 +21,7 @@ ExamineDesktops()
 ;--------------------------;
 ;     API & Windows-Libs   ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1=0
   ;{ Mouse Input Simulation
   Procedure IO_Set_SetMousePos(x,y)
     SetCursorPos_(x,y)
@@ -712,7 +712,7 @@ CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1=0
   ;{ AI
   
   Structure DataSet
@@ -1287,7 +1287,7 @@ CompilerEndIf
 ;--------------------------;
 ;   Using external Tools   ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1=0
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
     Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
@@ -3494,9 +3494,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 693
+; CursorPosition = 23
 ; FirstLine = 2
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
+; Folding = BAAAAAAAAAAAAAAgAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

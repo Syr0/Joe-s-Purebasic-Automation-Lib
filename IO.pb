@@ -1241,7 +1241,7 @@ CompilerIf 1=0
     
     ProcedureReturn Counter
   EndProcedure
-  Procedure ReadICMPPaket(*Data,Length)
+  Procedure IO_Check_ReadICMPPaket(*Data,Length)
     If Length <= 16+32
       ProcedureReturn 0
     EndIf
@@ -3494,9 +3494,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 23
-; FirstLine = 2
-; Folding = BAAAAAAAAAAAAAAgAAAAAAAAAAAAA-
+; CursorPosition = 1255
+; FirstLine = 33
+; Folding = AAAAAAAAAEAAAAgCAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

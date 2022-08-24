@@ -21,7 +21,7 @@ ExamineDesktops()
 ;--------------------------;
 ;     API & Windows-Libs   ;
 ;--------------------------;
-CompilerIf 1=0
+CompilerIf 1=1
   ;{ Mouse Input Simulation
   Procedure IO_Set_SetMousePos(x,y)
     SetCursorPos_(x,y)
@@ -157,6 +157,12 @@ CompilerIf 1=0
   EndProcedure
   ;}
   
+  ;{ InterProcessCommunication
+  Procedure IO_Set_SendCommand(hwnd,wm_command)
+    PostMessage_(hWnd,wm_command,0,0)
+  EndProcedure
+  ;}
+  
   ;{ Process Control <- Warning on slowdown!
   ;{ Structures
   #SystemProcessInformation = $0005
@@ -179,6 +185,8 @@ CompilerIf 1=0
   EndStructure
   Structure ProcessName
     Name.s
+    Threads.i
+    Path.s
     PID.i
   EndStructure
   Structure ScanAllProcessesForClassAndTitleWithResultUIFields
@@ -202,6 +210,7 @@ CompilerIf 1=0
     ProcedureReturn result
   EndProcedure
   Procedure IO_Get_AllProcess(List Processlist.ProcessName())
+    psapi = OpenLibrary(#PB_Any, "psapi.dll")
     #SystemProcessInformation = $0005
     Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
     NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
@@ -215,7 +224,18 @@ CompilerIf 1=0
             If *SPI\ImageName\usBuffer
               AddElement(Processlist())
               Processlist()\PID = *SPI\ProcessId
+              Processlist()\Threads = *SPI\NumberOfThreads
+              
+              hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, 0, *SPI\ProcessId)
+              If hProcess
+                Name$ = Space(1024)
+                CallFunction(psapi, "GetModuleFileNameExW", hProcess, 0, @Name$, Len(Name$)*2)
+                CloseHandle_(hProcess)
+              EndIf
+              
+              Processlist()\Path = Name$
               Processlist()\Name = PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
+              
             EndIf
             *SPI + *SPI\NextEntryOffset
           Wend
@@ -223,6 +243,7 @@ CompilerIf 1=0
         FreeMemory(*Buffer)
       EndIf
     EndIf
+    CloseLibrary(psapi)
   EndProcedure
   Procedure IO_Set_CloseProcessByName(filename.s);not title!
     NewList Processlist.ProcessName()
@@ -232,28 +253,6 @@ CompilerIf 1=0
         IO_Set_KillProcess(Processlist()\PID)
       EndIf
     Next
-  EndProcedure
-  
-  Procedure IO_Get_AllProcessAndPID()
-    Define dwlen, *Buffer, *SPI._SYSTEM_PROCESS_INFO
-    
-    NtQuerySystemInformation_(#SystemProcessInformation, 0, 0, @dwlen)
-    If dwlen
-      dwlen * 2
-      *Buffer = AllocateMemory(dwlen)
-      If *Buffer
-        If NtQuerySystemInformation_(#SystemProcessInformation, *Buffer, dwlen, @dwlen) = #ERROR_SUCCESS
-          *SPI = *Buffer
-          While *SPI\NextEntryOffset
-            If *SPI\ImageName\usBuffer
-              Debug RSet(Str(*SPI\ProcessId), 4, "0") + #TAB$ + PeekS(*SPI\ImageName\usBuffer, -1, #PB_Unicode)
-            EndIf
-            *SPI + *SPI\NextEntryOffset
-          Wend
-        EndIf
-        FreeMemory(*Buffer)
-      EndIf
-    EndIf
   EndProcedure
   Procedure IO_Check_RunningExe(FileName.s)
     Protected snap.l , Proc32.PROCESSENTRY32 , dll_kernel32.l
@@ -712,7 +711,7 @@ CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
 ;--------------------------;
-CompilerIf 1=0
+CompilerIf 1=1
   ;{ AI
   
   Structure DataSet
@@ -3493,10 +3492,10 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1255
-; FirstLine = 33
-; Folding = AAAAAAAAAEAAAAgCAAAAAAAAAAAAA-
+; IDE Options = PureBasic 5.72 (Windows - x64)
+; CursorPosition = 234
+; FirstLine = 217
+; Folding = ------------------------------
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

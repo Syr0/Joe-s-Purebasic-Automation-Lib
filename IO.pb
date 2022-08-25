@@ -121,7 +121,7 @@ CompilerIf 1=1
   EndProcedure
   ;}
   
-  ;{ Input Detection
+  ;{ Mouse Input Detection
   Procedure IO_Get_KeysDown(List Resultslist())
     ClearList(Resultslist())
     For x = 0 To 255
@@ -154,6 +154,9 @@ CompilerIf 1=1
   Procedure IO_Get_MouseY()
     GetCursorPos_(Mouse.POINT)
     ProcedureReturn Mouse\y
+  EndProcedure
+  Procedure IO_Get_MousePosition(*Result.POINT)
+    GetCursorPos_(*Result)
   EndProcedure
   ;}
   
@@ -345,7 +348,7 @@ CompilerIf 1=1
     EndIf
     
   EndProcedure
-  Procedure IO_Set_FocusWindow(hwnd)
+  Procedure IO_Set_FocusWindowedWindow(hwnd)
     SetForegroundWindow_(hwnd)
   EndProcedure
   Procedure IO_Set_MaxWindow(hwnd)
@@ -1066,12 +1069,22 @@ CompilerIf 1=1
   Procedure IO_Set_WindowForegroundMaximized(hWnd,force=0)
     ; Code by Elvis Rox erox@etree.com
     
-    If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_MINIMIZE
-      ShowWindow_(hWnd, #SW_MAXIMIZE)
-      UpdateWindow_(hWnd)
-    EndIf
-    
-    If force = 1
+    If force = 0
+      
+      ProcedureReturn SetForegroundWindow_(hwnd)
+    ElseIf force = 1
+      
+      style = GetWindowLong_(hWnd, #GWL_STYLE)
+      If style
+        If style = #WS_MINIMIZE
+          ShowWindow_(hWnd, #SW_MAXIMIZE)
+        Else
+          ShowWindow_(hWnd, #SW_SHOW)
+        EndIf
+        UpdateWindow_(hWnd)
+      EndIf
+      
+    ElseIf force = 2
       ; Check To see If we are the foreground thread
       
       foregroundThreadID = GetWindowThreadProcessId_(GetForegroundWindow_(), 0)
@@ -1094,6 +1107,16 @@ CompilerIf 1=1
       InvalidateRect_(hWnd, #Null, #True)
     EndIf
   EndProcedure 
+  
+  Procedure IO_Get_PurebasicGadgetHwnd(Gadget)
+    ProcedureReturn GadgetID(Gadget)
+  EndProcedure
+  Procedure IO_Get_WindowRectangle(hwnd,*result.RECT)
+    GetWindowRect_(hwnd,*result.RECT)
+  EndProcedure
+  Procedure IO_Check_PointInBoxCollision(*Box.RECT,*Point.POINT)
+    ProcedureReturn PtInRect_(*Box,PeekI(*Point))
+  EndProcedure
   ;}
   
   ;{ String-magic
@@ -3622,9 +3645,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 981
-; FirstLine = 83
-; Folding = BAAABEAAAggAAAAAAAAAAAAAAAAAAA+
+; CursorPosition = 1110
+; FirstLine = 51
+; Folding = BAARBQAAAABBAAAAAAAAAAAAAAAAAAg
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

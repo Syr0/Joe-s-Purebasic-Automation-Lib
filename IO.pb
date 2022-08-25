@@ -1059,7 +1059,36 @@ CompilerIf 1=1
       SetTextColor_( hdc, lCol)
     EndIf
   EndProcedure
-  ;}
+  Procedure IO_Set_WindowForegroundMaximized(hWnd)
+  ; Code by Elvis Rox erox@etree.com
+
+  If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_MINIMIZE
+    ShowWindow_(hWnd, #SW_MAXIMIZE)
+    UpdateWindow_(hWnd)
+  EndIf
+  
+  ; Check To see If we are the foreground thread
+  
+  foregroundThreadID = GetWindowThreadProcessId_(GetForegroundWindow_(), 0)
+  ourThreadID = GetCurrentThreadId_()
+  ; If not, attach our thread's 'input' to the foreground thread's
+  
+  If (foregroundThreadID <> ourThreadID)
+    AttachThreadInput_(foregroundThreadID, ourThreadID, #True);
+  EndIf
+  
+  ; Bring our window To the foreground
+  SetForegroundWindow_(hWnd)
+  
+  ; If we attached our thread, detach it now
+  If (foregroundThreadID <> ourThreadID)
+    AttachThreadInput_(foregroundThreadID, ourThreadID, #False)
+  EndIf  
+  
+  ; Force our window To redraw
+  InvalidateRect_(hWnd, #Null, #True)
+EndProcedure 
+;}
   
   ;{ String-magic
   Procedure IO_Check_Regex(Regex.s)
@@ -3587,9 +3616,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 940
-; FirstLine = 24
-; Folding = AAAAAAAAAggAAAAAAAAAAAAAAAAAAA-
+; CursorPosition = 1091
+; FirstLine = 29
+; Folding = AAAAAAAAAggAAAAAAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

@@ -326,24 +326,27 @@ CompilerIf 1=1
     
   EndProcedure
   Procedure IO_Get_HwndByTitle(Text$)
-    Repeat
-      ;hWnd = FindWindowEx_(0, hWnd, @"NotePad", 0)
-      hWnd = FindWindowEx_(0, hWnd, 0, 0)
-      If hwnd
-        cnt + 1
-        title.s = Space(512)
-        GetWindowText_(hWnd, @title, 512)
-        If FindString(title,Text$)
-          ProcedureReturn hwnd
+    hwnd = FindWindow_(0, @Text$)
+    If hwnd
+      ProcedureReturn hwnd
+    Else
+      Repeat
+        ;hWnd = FindWindowEx_(0, hWnd, @"NotePad", 0)
+        hWnd = FindWindowEx_(0, hWnd, 0, 0)
+        If hwnd
+          cnt + 1
+          title.s = Space(512)
+          GetWindowText_(hWnd, @title, 512)
+          If FindString(title,Text$)
+            ProcedureReturn hwnd
+          EndIf
         EndIf
-      EndIf
-    Until hWnd = 0
+      Until hWnd = 0
+    EndIf
+    
   EndProcedure
-  Procedure IO_Set_FocusWindowByTitle(Title.s)
-    hwnd = FindWindow_(0,Title)
+  Procedure IO_Set_FocusWindow(hwnd)
     SetForegroundWindow_(hwnd)
-    Delay(1)
-    ProcedureReturn hwnd
   EndProcedure
   Procedure IO_Set_MaxWindow(hwnd)
     SetWindowPos_(hwnd,0,-8,-31,DesktopWidth(0)+16,DesktopHeight(0)-2,0)
@@ -1059,36 +1062,38 @@ CompilerIf 1=1
       SetTextColor_( hdc, lCol)
     EndIf
   EndProcedure
-  Procedure IO_Set_WindowForegroundMaximized(hWnd)
-  ; Code by Elvis Rox erox@etree.com
-
-  If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_MINIMIZE
-    ShowWindow_(hWnd, #SW_MAXIMIZE)
-    UpdateWindow_(hWnd)
-  EndIf
-  
-  ; Check To see If we are the foreground thread
-  
-  foregroundThreadID = GetWindowThreadProcessId_(GetForegroundWindow_(), 0)
-  ourThreadID = GetCurrentThreadId_()
-  ; If not, attach our thread's 'input' to the foreground thread's
-  
-  If (foregroundThreadID <> ourThreadID)
-    AttachThreadInput_(foregroundThreadID, ourThreadID, #True);
-  EndIf
-  
-  ; Bring our window To the foreground
-  SetForegroundWindow_(hWnd)
-  
-  ; If we attached our thread, detach it now
-  If (foregroundThreadID <> ourThreadID)
-    AttachThreadInput_(foregroundThreadID, ourThreadID, #False)
-  EndIf  
-  
-  ; Force our window To redraw
-  InvalidateRect_(hWnd, #Null, #True)
-EndProcedure 
-;}
+  Procedure IO_Set_WindowForegroundMaximized(hWnd,force=0)
+    ; Code by Elvis Rox erox@etree.com
+    
+    If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_MINIMIZE
+      ShowWindow_(hWnd, #SW_MAXIMIZE)
+      UpdateWindow_(hWnd)
+    EndIf
+    
+    If force = 1
+      ; Check To see If we are the foreground thread
+      
+      foregroundThreadID = GetWindowThreadProcessId_(GetForegroundWindow_(), 0)
+      ourThreadID = GetCurrentThreadId_()
+      ; If not, attach our thread's 'input' to the foreground thread's
+      
+      If (foregroundThreadID <> ourThreadID)
+        AttachThreadInput_(foregroundThreadID, ourThreadID, #True);
+      EndIf
+      
+      ; Bring our window To the foreground
+      SetForegroundWindow_(hWnd)
+      
+      ; If we attached our thread, detach it now
+      If (foregroundThreadID <> ourThreadID)
+        AttachThreadInput_(foregroundThreadID, ourThreadID, #False)
+      EndIf  
+      
+      ; Force our window To redraw
+      InvalidateRect_(hWnd, #Null, #True)
+    EndIf
+  EndProcedure 
+  ;}
   
   ;{ String-magic
   Procedure IO_Check_Regex(Regex.s)
@@ -3616,9 +3621,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1091
-; FirstLine = 29
-; Folding = AAAAAAAAAggAAAAAAAAAAAAAAAAAAA+
+; CursorPosition = 328
+; FirstLine = 25
+; Folding = BAAABEAAAAAAAAAAAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

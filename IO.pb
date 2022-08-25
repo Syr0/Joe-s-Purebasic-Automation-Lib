@@ -194,6 +194,10 @@ CompilerIf 1=1
     Class.s
     Text.s
   EndStructure
+  Structure GetAllHwndAndTitles
+    Title.s
+    hwnd.i
+  EndStructure
   Structure NestedList
     List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
   EndStructure;}
@@ -282,6 +286,44 @@ CompilerIf 1=1
       CloseLibrary (dll_kernel32)
     EndIf
     ProcedureReturn #False
+  EndProcedure
+  Procedure IO_Get_AllHwndAndTitles(List Result.GetAllHwndAndTitles())
+    Repeat
+      sz = ListSize(Result())
+      Repeat 
+        If Flag = 0 
+          hWnd = FindWindow_(0, 0) 
+          Flag=1 
+        Else 
+          hWnd = GetWindow_(hWnd, #GW_HWNDNEXT) 
+        EndIf 
+        If hWnd <> 0 
+          If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_VISIBLE = #WS_VISIBLE
+            If GetWindowLong_(hWnd, #GWL_EXSTYLE) & #WS_EX_TOOLWINDOW <> #WS_EX_TOOLWINDOW
+              ret.s = Space(256) 
+              GetWindowText_(hWnd, ret, 256) 
+              AddElement(Result())
+              Result()\Title = ret
+              Result()\hwnd = hwnd
+              If ret <> "" : Break : EndIf 
+            EndIf 
+          EndIf 
+        Else 
+          Flag = 0 
+        EndIf 
+      Until hWnd = 0 
+      If sz = ListSize(Result())
+        Break
+      EndIf
+    ForEver
+    ;{ EXAMPLE
+    ; NewList test.GetAllHwndAndTitles()
+    ; IO_Get_AllHwndAndTitles(test())
+    ; ForEach test()
+    ;   Debug test()\Title
+    ; Next
+    ;}
+    
   EndProcedure
   Procedure IO_Get_HwndByTitle(Text$)
     Repeat
@@ -595,23 +637,26 @@ CompilerIf 1=1
       address=*mbi\BaseAddress+*mbi\RegionSize
       
     Until result=0
+    
+    ;{ EXAMPLE
+    ;     HWND = FindWindow_(NULL, "*Unbenannt - Editor")
+    ;     GetWindowThreadProcessId_(HWND, @pid)
+    ;     findString$="LOL123LOL456"
+    ;     
+    ;     
+    ;     NewList Results.MemoryResult()
+    ;     IO_Check_MemScanForValue(pid,Results(),@findString$,#PB_String)
+    ;     ForEach Results()
+    ;       
+    ;       Debug Hex(Results()\Adress)+" + "+ Hex(Results()\Offset)
+    ;       Debug Results()\String
+    ;       Debug Results()\Type
+    ;       
+    ;     Next 
+    ;}
+    
   EndProcedure
-  ;{ EXAMPLE
-  ;     HWND = FindWindow_(NULL, "*Unbenannt - Editor")
-  ;     GetWindowThreadProcessId_(HWND, @pid)
-  ;     findString$="LOL123LOL456"
-  ;     
-  ;     
-  ;     NewList Results.MemoryResult()
-  ;     IO_Check_MemScanForValue(pid,Results(),@findString$,#PB_String)
-  ;     ForEach Results()
-  ;       
-  ;       Debug Hex(Results()\Adress)+" + "+ Hex(Results()\Offset)
-  ;       Debug Results()\String
-  ;       Debug Results()\Type
-  ;       
-  ;     Next 
-  ;}
+  
   
   
   ;{ Util - System
@@ -868,7 +913,32 @@ CompilerIf 1=1
     Color.i
   EndStructure
   ;}
-  Procedure IO_Get_Screenshot()
+  Prototype.i ptPrintWindow(hWnd, hdc, flags)
+  Procedure IO_Get_ScreenShotMinimizedWindow(hwnd) ; Not a screen!
+    OpenLibrary(1, "User32.dll")
+    PrintWindow.ptPrintWindow = GetFunction(1, "PrintWindow")
+    
+    SetWindowLongPtr_(hwnd,#GWL_EXSTYLE,#WS_EX_LAYERED)
+    SetLayeredWindowAttributes_(hwnd,0,0,#LWA_ALPHA)
+    ShowWindow_(hWnd,#SW_RESTORE)
+    GetWindowRect_(hWnd, r.RECT)
+    width = r\right-r\left
+    height = r\bottom-r\top
+    
+    image = CreateImage(#PB_Any, width, height, 24)
+    hdc = StartDrawing(ImageOutput(image))
+    Delay(10)
+    PrintWindow(hWnd, hdc,0)
+    StopDrawing()
+    
+    ShowWindow_(hWnd,#SW_HIDE)
+    ShowWindow_(hWnd,#SW_MINIMIZE)
+    SetWindowLongPtr_(hwnd,#GWL_EXSTYLE,#WS_EX_LAYERED)
+    SetLayeredWindowAttributes_(hwnd,0,255,#LWA_ALPHA)
+    ProcedureReturn image
+    
+  EndProcedure
+  Procedure IO_Get_DesktopScreenshot()
     img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
     hDC = StartDrawing(ImageOutput(img))
     If hDC
@@ -1401,7 +1471,7 @@ CompilerIf 1=0
   
   Procedure IO_Check_OCR(*Parameter.OCRStruct)
     Uniquename.s = Str(*Parameter\x)+Str(*Parameter\y)+Str(*Parameter\h)+Str(*Parameter\w)
-    img = IO_Get_Screenshot()
+    img = IO_Get_DesktopScreenshot()
     ocrimage = GrabImage(img,#PB_Any,*Parameter\x,*Parameter\y,*Parameter\w,*Parameter\h)
     If Not IsImage(ocrimage)
       ProcedureReturn 0
@@ -3492,9 +3562,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 5.72 (Windows - x64)
-; CursorPosition = 234
-; FirstLine = 217
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; CursorPosition = 3548
+; FirstLine = 3537
 ; Folding = ------------------------------
 ; EnableThread
 ; EnableXP

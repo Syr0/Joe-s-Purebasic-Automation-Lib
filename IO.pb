@@ -964,6 +964,7 @@ CompilerIf 1=1
     StartDrawing(ImageOutput(Id)) 
     DrawImage(BMPHandle,0,0) 
     StopDrawing()
+    ProcedureReturn Id
   EndProcedure 
   Procedure IO_Get_DesktopScreenshot()
     img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
@@ -3621,9 +3622,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 328
-; FirstLine = 25
-; Folding = BAAABEAAAAAAAAAAAAAAAAAAAAAAAA+
+; CursorPosition = 981
+; FirstLine = 83
+; Folding = BAAABEAAAggAAAAAAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

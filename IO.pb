@@ -938,6 +938,30 @@ CompilerIf 1=1
     ProcedureReturn image
     
   EndProcedure
+  Procedure IO_Get_ScreenShotRectangle(Left.l, Top.l, Width.l, Height.l) 
+    dm.DEVMODE 
+    BMPHandle.l 
+    srcDC = CreateDC_("DISPLAY", "", "", dm) 
+    trgDC = CreateCompatibleDC_(srcDC) 
+    BMPHandle = CreateCompatibleBitmap_(srcDC, Width, Height) 
+    SelectObject_( trgDC, BMPHandle) 
+    BitBlt_( trgDC, 0, 0, Width, Height, srcDC, Left, Top, #SRCCOPY) 
+    DeleteDC_( trgDC) 
+    ReleaseDC_( BMPHandle, srcDC)
+    
+    CaptureScreenHeight=Height
+    CaptureScreenWidth=Width
+    ProcedureReturn BMPHandle 
+  EndProcedure 
+  Procedure IO_Get_Screenshot_Window(hwnd) ; ### The Window must be visible !
+    WindowSize.RECT 
+    GetWindowRect_(hwnd, @WindowSize) 
+    BMPHandle = IO_Get_ScreenShotRectangle(WindowSize\Left, WindowSize\Top, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
+    Id=CreateImage(#PB_Any, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
+    StartDrawing(ImageOutput(Id)) 
+    DrawImage(BMPHandle,0,0) 
+    StopDrawing()
+  EndProcedure 
   Procedure IO_Get_DesktopScreenshot()
     img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
     hDC = StartDrawing(ImageOutput(img))
@@ -3563,9 +3587,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3548
-; FirstLine = 3537
-; Folding = ------------------------------
+; CursorPosition = 940
+; FirstLine = 24
+; Folding = AAAAAAAAAggAAAAAAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

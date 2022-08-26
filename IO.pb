@@ -2108,9 +2108,9 @@ CompilerIf 1=0
     ProcedureReturn Output$ 
   EndProcedure
   
-  NewList Datensatz.FileAndType()
-  Macro AddDatensatz(ClassName,PathName)
-    AddElement(Datensatz()) : Datensatz()\Class = ClassName  : Datensatz()\Filepath = PathName
+  NewList Dataset.FileAndType()
+  Macro AddDataset(ClassName,PathName)
+    AddElement(Dataset()) : Dataset()\Class = ClassName  : Dataset()\Filepath = PathName
   EndMacro
   
   NewList TestDataset.FileAndType()
@@ -2125,30 +2125,30 @@ CompilerIf 1=0
   ;       Continue
   ;     EndIf
   ;     If FindString(name$,"mno")
-  ;       AddDatensatz("Butterfly",name$)
+  ;       AddDataset("Butterfly",name$)
   ;     ElseIf FindString(name$,"owl")
-  ;       AddDatensatz("Owl",name$)
+  ;       AddDataset("Owl",name$)
   ;     EndIf
   ;   Wend
   ;   FinishDirectory(d)
   ;   
-  ;   ;Split Test-Datensatz away
+  ;   ;Split Test-Dataset away
   ;   OwlCounter = 0
   ;   ButterflyCounter = 0
-  ;   ForEach Datensatz()
-  ;     If Datensatz()\Class = "Owl" And OwlCounter < 10
+  ;   ForEach Dataset()
+  ;     If Dataset()\Class = "Owl" And OwlCounter < 10
   ;       OwlCounter +1
-  ;     ElseIf Datensatz()\Class = "Butterfly" And ButterflyCounter < 10
+  ;     ElseIf Dataset()\Class = "Butterfly" And ButterflyCounter < 10
   ;       ButterflyCounter+1
   ;     Else
   ;       Continue
   ;     EndIf
-  ;     AddElement(TestDataset()) : TestDataset()\Class = Datensatz()\Class : TestDataset()\Filepath = Datensatz()\Filepath : DeleteElement(Datensatz())
+  ;     AddElement(TestDataset()) : TestDataset()\Class = Dataset()\Class : TestDataset()\Filepath = Dataset()\Filepath : DeleteElement(Dataset())
   ;   Next
   ;   
   ; ;Start Working
   ; SaveFileName.s      = DatasetPath+"Trained.brain"
-  ; ArffFile$           = IO_Get_Weka_LoadImages(Datensatz(),DatasetPath)
+  ; ArffFile$           = IO_Get_Weka_LoadImages(Dataset(),DatasetPath)
   ; TrainedBrainFile.s  = IO_Get_Weka_Train(ArffFile$,"RandomForest",SaveFileName)
   ; DeleteFile(ArffFile$)
   ; 
@@ -3907,9 +3907,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 760
-; FirstLine = 1
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 2133
+; FirstLine = 65
+; Folding = AAAAAAAAAAAAAAAAAACAEQAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

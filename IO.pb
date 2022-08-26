@@ -918,19 +918,19 @@ CompilerIf 1=1
     Color.i
   EndStructure
   Structure SelType
-  left.i   ; left edge 'x' value of selected area
-  right.i  ; right edge 'x' value of selected area
-  top.i    ; top edge 'y' value of selected area
-  bottom.i ; bottom edge 'y' value of selected area
-  active.i ; set to #False when image is new or updated
-  sFlag.i  ; if #True an area is selected
-  limLeft.i; left boundary limit of selection area (window coordinates)
-  limRight.i  ; right boundary limit of selection area (window coordinates)
-  limTop.i    ; top boundary limit of selection area (window coordinates)
-  limBottom.i ; bottom boundary limit of selection area (window coordinates)
-EndStructure
+    left.i   ; left edge 'x' value of selected area
+    right.i  ; right edge 'x' value of selected area
+    top.i    ; top edge 'y' value of selected area
+    bottom.i ; bottom edge 'y' value of selected area
+    active.i ; set to #False when image is new or updated
+    sFlag.i  ; if #True an area is selected
+    limLeft.i; left boundary limit of selection area (window coordinates)
+    limRight.i  ; right boundary limit of selection area (window coordinates)
+    limTop.i    ; top boundary limit of selection area (window coordinates)
+    limBottom.i ; bottom boundary limit of selection area (window coordinates)
+  EndStructure
   ;}
-
+  
   Prototype ptPrintWindow(hWnd, hdc, flags)
   Procedure IO_Get_ScreenShotMinimizedWindow(hwnd) ; Not a screen!
     OpenLibrary(1, "User32.dll")
@@ -1130,256 +1130,256 @@ EndStructure
     ProcedureReturn PtInRect_(*Box,PeekI(*Point))
   EndProcedure
   Procedure IO_Manual_ImagePixelPatternCreatorINTERNAL()
-  ; Use the mouse to select an area on a window.
-  
-  Shared selection.SelType
-  Static.i x, y, lenX, lenY, lastX, lastY, boxSet
-  Static.i WIC = #PB_Window_InnerCoordinate
-  Protected.i drag, stretch, msx, msy, ox, oy
-  Protected Win = GetActiveWindow()
-  
-  With selection
-    x = WindowMouseX(Win)
-    y = WindowMouseY(Win)
+    ; Use the mouse to select an area on a window.
     
-    If x < \limLeft Or x > \limRight Or y < \limTop Or y > \limBottom
-      ProcedureReturn
-    EndIf
+    Shared selection.SelType
+    Static.i x, y, lenX, lenY, lastX, lastY, boxSet
+    Static.i WIC = #PB_Window_InnerCoordinate
+    Protected.i drag, stretch, msx, msy, ox, oy
+    Protected Win = GetActiveWindow()
     
-    If boxSet = #True And x > \right-9 And x < \right And y > \bottom-9 And y < \bottom
-      stretch = #True ; resize selection rectangle is active
-      x = lastX
-      y = lastY
-    ElseIf x > \left And x < \right And y > \top And y < \bottom
-      drag = #True ; drage selection rectangle is active
-      ox = lenX >> 1
-      oy = lenY >> 1
-      ; move cursor to center of selected area
-      SetCursorPos_(\left+Abs(ox)+WindowX(Win, WIC), \top+Abs(oy)+WindowY(Win,WIC))
-    Else
-      drag = #False
-    EndIf
-    
-    
-    While WaitWindowEvent(100) <> #WM_LBUTTONUP
-      StartDrawing(WindowOutput(Win))
-      DrawingMode(#PB_2DDrawing_XOr)
-      If \active = #True
-        ; erase previous selection rectangle
-        LineXY(lastX, lastY, lastX + lenX, lastY, 0)
-        LineXY(lastX, lastY, lastX, lastY + lenY, 0)
-        LineXY(lastX, lastY + lenY, lastX + lenX, lastY + lenY, 0)
-        LineXY(lastX + lenX, lastY, lastX + lenX, lastY + lenY, 0)
-        If boxSet = #True
-          boxSet = #False
-          Box(\right - 8, \bottom - 8, 8, 8, 0)
-        EndIf
+    With selection
+      x = WindowMouseX(Win)
+      y = WindowMouseY(Win)
+      
+      If x < \limLeft Or x > \limRight Or y < \limTop Or y > \limBottom
+        ProcedureReturn
+      EndIf
+      
+      If boxSet = #True And x > \right-9 And x < \right And y > \bottom-9 And y < \bottom
+        stretch = #True ; resize selection rectangle is active
+        x = lastX
+        y = lastY
+      ElseIf x > \left And x < \right And y > \top And y < \bottom
+        drag = #True ; drage selection rectangle is active
+        ox = lenX >> 1
+        oy = lenY >> 1
+        ; move cursor to center of selected area
+        SetCursorPos_(\left+Abs(ox)+WindowX(Win, WIC), \top+Abs(oy)+WindowY(Win,WIC))
       Else
-        ; activate for a new or freshly updated image
-        \active = #True
+        drag = #False
+      EndIf
+      
+      
+      While WaitWindowEvent(100) <> #WM_LBUTTONUP
+        StartDrawing(WindowOutput(Win))
+        DrawingMode(#PB_2DDrawing_XOr)
+        If \active = #True
+          ; erase previous selection rectangle
+          LineXY(lastX, lastY, lastX + lenX, lastY, 0)
+          LineXY(lastX, lastY, lastX, lastY + lenY, 0)
+          LineXY(lastX, lastY + lenY, lastX + lenX, lastY + lenY, 0)
+          LineXY(lastX + lenX, lastY, lastX + lenX, lastY + lenY, 0)
+          If boxSet = #True
+            boxSet = #False
+            Box(\right - 8, \bottom - 8, 8, 8, 0)
+          EndIf
+        Else
+          ; activate for a new or freshly updated image
+          \active = #True
+          lastX = x
+          lastY = y
+          boxSet = #False
+        EndIf
+        
+        msx = WindowMouseX(Win)
+        msy = WindowMouseY(Win)
+        
+        ; check if  cursor is in bounds
+        If msx >= \limLeft And msx < \limRight And msy >= \limTop And msy < \limBottom
+          If drag = #False ; calculate size of next selection outline
+            lenX = msx - x
+            lenY = msy - y
+          Else ; drag the selection outline
+            x = msx - lenX >> 1
+            y = msy - lenY >> 1
+            
+            ; prevent out of bounds dragging
+            If x < \limLeft : x = \limLeft : EndIf ; check left side
+            If y < \limTop  : y = \limTop  : EndIf ; check top side
+            If x > \limRight -1 - lenX             ; check right side
+              x = \limRight -1 - lenX
+            EndIf
+            If y > \limBottom -1 - lenY ; check bottom side
+              y = \limBottom -1 - lenY
+            EndIf
+          EndIf
+        EndIf
+        ; draw the selection rectangle
+        LineXY(x, y, x + lenX, y, 0)
+        LineXY(x, y, x, y + lenY, 0)
+        LineXY(x, y + lenY, x + lenX, y + lenY, 0)
+        LineXY(x + lenX, y, x + lenX, y + lenY, 0)
+        
         lastX = x
         lastY = y
-        boxSet = #False
+        StopDrawing()
+        
+        \left = x
+        \top = y
+        \right = x + lenX
+        \bottom = y + lenY
+        
+      Wend
+      
+      If \left > \right ; fix left/right crossover
+        Swap \left, \right : x + lenX : lastX = x : lenX * -1
       EndIf
       
-      msx = WindowMouseX(Win)
-      msy = WindowMouseY(Win)
-      
-      ; check if  cursor is in bounds
-      If msx >= \limLeft And msx < \limRight And msy >= \limTop And msy < \limBottom
-        If drag = #False ; calculate size of next selection outline
-          lenX = msx - x
-          lenY = msy - y
-        Else ; drag the selection outline
-          x = msx - lenX >> 1
-          y = msy - lenY >> 1
-          
-          ; prevent out of bounds dragging
-          If x < \limLeft : x = \limLeft : EndIf ; check left side
-          If y < \limTop  : y = \limTop  : EndIf ; check top side
-          If x > \limRight -1 - lenX             ; check right side
-            x = \limRight -1 - lenX
-          EndIf
-          If y > \limBottom -1 - lenY ; check bottom side
-            y = \limBottom -1 - lenY
-          EndIf
-        EndIf
+      If \top > \bottom ; fix top/bottom crossover
+        Swap \top, \bottom : y + lenY : lastY = y : lenY * -1
       EndIf
-      ; draw the selection rectangle
-      LineXY(x, y, x + lenX, y, 0)
-      LineXY(x, y, x, y + lenY, 0)
-      LineXY(x, y + lenY, x + lenX, y + lenY, 0)
-      LineXY(x + lenX, y, x + lenX, y + lenY, 0)
       
-      lastX = x
-      lastY = y
-      StopDrawing()
+      ; mouse button was released
+      If \left = \right And \top = \bottom ; single point so no selection
+        \sFlag = #False
+      Else ; a valid selection has been made
+        \sFlag = #True
+        ; draw the selection resize box
+        StartDrawing(WindowOutput(Win))
+        DrawingMode(#PB_2DDrawing_XOr)
+        Box(\right - 8, \bottom - 8, 8, 8, 0)
+        boxSet = #True
+        StopDrawing()
+      EndIf
       
-      \left = x
-      \top = y
-      \right = x + lenX
-      \bottom = y + lenY
-      
-    Wend
-    
-    If \left > \right ; fix left/right crossover
-      Swap \left, \right : x + lenX : lastX = x : lenX * -1
-    EndIf
-    
-    If \top > \bottom ; fix top/bottom crossover
-      Swap \top, \bottom : y + lenY : lastY = y : lenY * -1
-    EndIf
-    
-    ; mouse button was released
-    If \left = \right And \top = \bottom ; single point so no selection
-      \sFlag = #False
-    Else ; a valid selection has been made
-      \sFlag = #True
-      ; draw the selection resize box
-      StartDrawing(WindowOutput(Win))
-      DrawingMode(#PB_2DDrawing_XOr)
-      Box(\right - 8, \bottom - 8, 8, 8, 0)
-      boxSet = #True
-      StopDrawing()
-    EndIf
-    
-  EndWith
-EndProcedure
-Procedure IO_Manual_ImagePixelPatterCreator(image,*selection.SelType,List Result.Pixels())
-  NewList IgnoreButtonCollision.i()
-  
-  lastsselection.SelType
-  MainWindow = OpenWindow(#PB_Any ,0,0,ImageWidth(image),ImageHeight(image),"Image Pixel Pattern Creator",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
-    If MainWindow
-    ResizeWindow(MainWindow,#PB_Ignore,#PB_Ignore,#PB_Ignore,WindowHeight(MainWindow))
-    button = ButtonGadget(#PB_Any,10,10,150,40,"ANALYSE") : AddElement(IgnoreButtonCollision()): IgnoreButtonCollision() = button
-    buttonOutput = ButtonGadget(#PB_Any,10,50,150,40,"RESULT") : AddElement(IgnoreButtonCollision()): IgnoreButtonCollision() = buttonOutput
-    ImageGadget(0,0,0,ImageWidth(image),ImageHeight(image),ImageID(image))
-    DisableGadget(buttonOutput,1)
-    
-    ; set up selection area boundaries using image gadget 0
-    With *selection
-      \limLeft = GadgetX(0)
-      \limTop  = GadgetY(0)
-      \limRight = \limLeft + GadgetWidth(0)
-      \limBottom = \limTop + GadgetHeight(0)
     EndWith
+  EndProcedure
+  Procedure IO_Manual_ImagePixelPatterCreator(image,*selection.SelType,List Result.Pixels())
+    NewList IgnoreButtonCollision.i()
     
-    Repeat ; event loop
-      Select WaitWindowEvent(1)
-        Case #PB_Event_CloseWindow
-          If GetActiveWindow() = MainWindow
-            Break
-          EndIf
-          If GetActiveWindow() = inspector And IsWindow(inspector)
-            CloseWindow(inspector)
-          EndIf
-            
-        Case #PB_Event_Gadget
-          Select EventGadget()
-            Case button
-              ;New Selection?
-              If CompareMemory(*selection,lastsselection,SizeOf(SelType))
-                Analysismode = (Analysismode +1) %3
-              Else
-                Analysismode = 0
-              EndIf
-              
-              newimage = GrabImage(image,#PB_Any,*selection\left,*selection\top,*selection\right-*selection\left,*selection\bottom - *selection\top)
-              CopyStructure(*selection,lastsselection,SelType)
-              If Not newimage
-                Continue
-              EndIf
-              
-              SetGadgetText(button,"Automatic Pattern")
-              inspector = OpenWindow(#PB_Any,0,0,ImageWidth(newimage),ImageHeight(newimage),"Image Pixel Pattern Result",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
-              inspectorImageGadget = ImageGadget(#PB_Any,0,0,ImageWidth(newimage),ImageHeight(newimage),ImageID(newimage))
-              
-              ;{ Start Analysis of Image
-              Select Analysismode
-                Case 0 ;Select equal distributed
-                  tempimage = CopyImage(newimage,#PB_Any)
-                  StartDrawing(ImageOutput(tempimage))
-                  desiredPoints = 10
-                  NewList Plots.Pixels()
-                  For Stepsize = 1 To ImageWidth(tempimage)
-                    x = -Stepsize/2
-                    y = -Stepsize/2
-                    ok = 0
-                    finish = 0
-                    Repeat
-                      x = x + Stepsize
-                      Repeat
-                        y = (y + Stepsize) % ImageHeight(tempimage)
-                        AddElement(Plots()) :  Plots()\x = x : Plots()\y = y : Plots()\Color = Point(x,y)
-                        
-                        If ListSize(Plots()) > desiredPoints
-                          finish = 1
-                        EndIf
-                        
-                      Until (y + Stepsize) >= ImageHeight(tempimage) Or finish
-                    Until (x + Stepsize) >= ImageWidth(tempimage) Or finish
-                    
-                    If finish
-                      ClearList(Plots())
-                    Else
-                      Break
-                    EndIf
-                  Next
-                  
-                  ForEach Plots()
-                    Circle(Plots()\x,Plots()\y,10,#Red)
-                  Next
-                  StopDrawing()
-                  
-                  SetGadgetState(inspectorImageGadget,ImageID(tempimage))
-                  DisableGadget(buttonOutput,0)
-                  
-                Case 1 ;Select dense equal distributed
-                  SetGadgetText(button,"Automatic Pattern")
-                Case 2 ;Select border only
-                  SetGadgetText(button,"Manual Pattern")
-              EndSelect
-              
-              ;}
-            Case buttonOutput
-              If ListSize(Plots()) > 0
-                Text.s = "NewList Pixels.Pixels())"+#LF$
-                ForEach Plots()
-                  Text + "AddElement(Pixels()) : Pixels()\x = "+Str(Plots()\x)+" : Pixels()\y = "+Str(Plots()\y)+" : Pixels()\color = "+Str(Plots()\Color)+""+#LF$
-                Next
-                choice = MessageRequester("Result","Press OK to copy the resulting code to clipboard:"+#LF$+Text,#PB_MessageRequester_YesNo)
-                If choice = #PB_MessageRequester_Yes
-                  SetClipboardText(text)
-                EndIf
-              EndIf
-              
-          EndSelect
-        Case #WM_LBUTTONDOWN
-          ;Check if button hit - then do not destryo the rectangle!
-          If IsWindow(inspector) And EventWindow() = MainWindow
-            CloseWindow(inspector)
-            Continue
-          EndIf
-          
-          ForEach IgnoreButtonCollision()
-            hwnd = IO_Get_PurebasicGadgetHwnd(IgnoreButtonCollision())
-            IO_Get_WindowRectangle(hwnd,Rectangle.RECT)
-            IO_Get_MousePosition(Mouse.POINT)
-            collission = IO_Check_PointInBoxCollision(Rectangle,Mouse)
-            If collission
+    lastsselection.SelType
+    MainWindow = OpenWindow(#PB_Any ,0,0,ImageWidth(image),ImageHeight(image),"Image Pixel Pattern Creator",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+    If MainWindow
+      ResizeWindow(MainWindow,#PB_Ignore,#PB_Ignore,#PB_Ignore,WindowHeight(MainWindow))
+      button = ButtonGadget(#PB_Any,10,10,150,40,"ANALYSE") : AddElement(IgnoreButtonCollision()): IgnoreButtonCollision() = button
+      buttonOutput = ButtonGadget(#PB_Any,10,50,150,40,"RESULT") : AddElement(IgnoreButtonCollision()): IgnoreButtonCollision() = buttonOutput
+      ImageGadget(0,0,0,ImageWidth(image),ImageHeight(image),ImageID(image))
+      DisableGadget(buttonOutput,1)
+      
+      ; set up selection area boundaries using image gadget 0
+      With *selection
+        \limLeft = GadgetX(0)
+        \limTop  = GadgetY(0)
+        \limRight = \limLeft + GadgetWidth(0)
+        \limBottom = \limTop + GadgetHeight(0)
+      EndWith
+      
+      Repeat ; event loop
+        Select WaitWindowEvent(1)
+          Case #PB_Event_CloseWindow
+            If GetActiveWindow() = MainWindow
               Break
             EndIf
-          Next
-          If Not collission
-            DisableGadget(buttonOutput,1)
-            IO_Manual_ImagePixelPatternCreatorINTERNAL()
-          EndIf
-      EndSelect
-    ForEver
-  EndIf
-EndProcedure
-;}
+            If GetActiveWindow() = inspector And IsWindow(inspector)
+              CloseWindow(inspector)
+            EndIf
+            
+          Case #PB_Event_Gadget
+            Select EventGadget()
+              Case button
+                ;New Selection?
+                If CompareMemory(*selection,lastsselection,SizeOf(SelType))
+                  Analysismode = (Analysismode +1) %3
+                Else
+                  Analysismode = 0
+                EndIf
+                
+                newimage = GrabImage(image,#PB_Any,*selection\left,*selection\top,*selection\right-*selection\left,*selection\bottom - *selection\top)
+                CopyStructure(*selection,lastsselection,SelType)
+                If Not newimage
+                  Continue
+                EndIf
+                
+                SetGadgetText(button,"Automatic Pattern")
+                inspector = OpenWindow(#PB_Any,0,0,ImageWidth(newimage),ImageHeight(newimage),"Image Pixel Pattern Result",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+                inspectorImageGadget = ImageGadget(#PB_Any,0,0,ImageWidth(newimage),ImageHeight(newimage),ImageID(newimage))
+                
+                ;{ Start Analysis of Image
+                Select Analysismode
+                  Case 0 ;Select equal distributed
+                    tempimage = CopyImage(newimage,#PB_Any)
+                    StartDrawing(ImageOutput(tempimage))
+                    desiredPoints = 10
+                    NewList Plots.Pixels()
+                    For Stepsize = 1 To ImageWidth(tempimage)
+                      x = -Stepsize/2
+                      y = -Stepsize/2
+                      ok = 0
+                      finish = 0
+                      Repeat
+                        x = x + Stepsize
+                        Repeat
+                          y = (y + Stepsize) % ImageHeight(tempimage)
+                          AddElement(Plots()) :  Plots()\x = x : Plots()\y = y : Plots()\Color = Point(x,y)
+                          
+                          If ListSize(Plots()) > desiredPoints
+                            finish = 1
+                          EndIf
+                          
+                        Until (y + Stepsize) >= ImageHeight(tempimage) Or finish
+                      Until (x + Stepsize) >= ImageWidth(tempimage) Or finish
+                      
+                      If finish
+                        ClearList(Plots())
+                      Else
+                        Break
+                      EndIf
+                    Next
+                    
+                    ForEach Plots()
+                      Circle(Plots()\x,Plots()\y,10,#Red)
+                    Next
+                    StopDrawing()
+                    
+                    SetGadgetState(inspectorImageGadget,ImageID(tempimage))
+                    DisableGadget(buttonOutput,0)
+                    
+                  Case 1 ;Select dense equal distributed
+                    SetGadgetText(button,"Automatic Pattern")
+                  Case 2 ;Select border only
+                    SetGadgetText(button,"Manual Pattern")
+                EndSelect
+                
+                ;}
+              Case buttonOutput
+                If ListSize(Plots()) > 0
+                  Text.s = "NewList Pixels.Pixels())"+#LF$
+                  ForEach Plots()
+                    Text + "AddElement(Pixels()) : Pixels()\x = "+Str(Plots()\x)+" : Pixels()\y = "+Str(Plots()\y)+" : Pixels()\color = "+Str(Plots()\Color)+""+#LF$
+                  Next
+                  choice = MessageRequester("Result","Press OK to copy the resulting code to clipboard:"+#LF$+Text,#PB_MessageRequester_YesNo)
+                  If choice = #PB_MessageRequester_Yes
+                    SetClipboardText(text)
+                  EndIf
+                EndIf
+                
+            EndSelect
+          Case #WM_LBUTTONDOWN
+            ;Check if button hit - then do not destryo the rectangle!
+            If IsWindow(inspector) And EventWindow() = MainWindow
+              CloseWindow(inspector)
+              Continue
+            EndIf
+            
+            ForEach IgnoreButtonCollision()
+              hwnd = IO_Get_PurebasicGadgetHwnd(IgnoreButtonCollision())
+              IO_Get_WindowRectangle(hwnd,Rectangle.RECT)
+              IO_Get_MousePosition(Mouse.POINT)
+              collission = IO_Check_PointInBoxCollision(Rectangle,Mouse)
+              If collission
+                Break
+              EndIf
+            Next
+            If Not collission
+              DisableGadget(buttonOutput,1)
+              IO_Manual_ImagePixelPatternCreatorINTERNAL()
+            EndIf
+        EndSelect
+      ForEver
+    EndIf
+  EndProcedure
+  ;}
   
   ;{ String-magic
   Procedure IO_Check_Regex(Regex.s)
@@ -3907,7 +3907,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 763
+; CursorPosition = 760
+; FirstLine = 1
 ; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP

@@ -956,7 +956,7 @@ CompilerIf 1=1
     ProcedureReturn image
     
   EndProcedure
-  Procedure IO_Get_ScreenShotRectangle(Left.l, Top.l, Width.l, Height.l) 
+  Procedure IO_Get_ScreenShotFromVideoScreen(Left.l, Top.l, Width.l, Height.l) 
     dm.DEVMODE 
     BMPHandle.l 
     srcDC = CreateDC_("DISPLAY", "", "", dm) 
@@ -966,28 +966,22 @@ CompilerIf 1=1
     BitBlt_( trgDC, 0, 0, Width, Height, srcDC, Left, Top, #SRCCOPY) 
     DeleteDC_( trgDC) 
     ReleaseDC_( BMPHandle, srcDC)
-    
-    CaptureScreenHeight=Height
-    CaptureScreenWidth=Width
     ProcedureReturn BMPHandle 
   EndProcedure 
-  Procedure IO_Get_Screenshot_Window(hwnd) ; ### The Window must be visible !
-    WindowSize.RECT 
-    GetWindowRect_(hwnd, @WindowSize) 
-    BMPHandle = IO_Get_ScreenShotRectangle(WindowSize\Left, WindowSize\Top, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
-    Id=CreateImage(#PB_Any, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
-    StartDrawing(ImageOutput(Id)) 
-    DrawImage(BMPHandle,0,0) 
-    StopDrawing()
-    ProcedureReturn Id
-  EndProcedure 
-  Procedure IO_Get_DesktopScreenshot()
+  Procedure IO_Get_ScreenShotFromDesktop(x=0,y=0,w=-1,h=-1)
     img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
     hDC = StartDrawing(ImageOutput(img))
+    If w = -1 
+      w = DesktopWidth(0)
+    EndIf
+    If h = -1
+      h = DesktopHeight(0)-40
+    EndIf
+    
     If hDC
       DeskDC = GetDC_(GetDesktopWindow_())
       If DeskDC
-        BitBlt_(hDC,0,0,DesktopWidth(0),DesktopHeight(0)-40,DeskDC,0,0,#SRCCOPY)
+        BitBlt_(hDC,x,y,w,h,DeskDC,0,0,#SRCCOPY)
       EndIf
       ReleaseDC_(GetDesktopWindow_(),DeskDC)
     EndIf
@@ -1815,7 +1809,7 @@ CompilerIf 1=0
   
   Procedure IO_Check_OCR(*Parameter.OCRStruct)
     Uniquename.s = Str(*Parameter\x)+Str(*Parameter\y)+Str(*Parameter\h)+Str(*Parameter\w)
-    img = IO_Get_DesktopScreenshot()
+    img = IO_Get_ScreenShotFromDesktop()
     ocrimage = GrabImage(img,#PB_Any,*Parameter\x,*Parameter\y,*Parameter\w,*Parameter\h)
     If Not IsImage(ocrimage)
       ProcedureReturn 0
@@ -3907,9 +3901,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2133
-; FirstLine = 65
-; Folding = AAAAAAAAAAAAAAAAAACAEQAAAAAAAAA9
+; CursorPosition = 970
+; FirstLine = 30
+; Folding = AAAAAAAAAABBAAAAAARBCIAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

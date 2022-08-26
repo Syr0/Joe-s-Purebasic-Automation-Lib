@@ -988,6 +988,17 @@ CompilerIf 1=1
     StopDrawing()
     ProcedureReturn img
   EndProcedure
+  Procedure IO_Get_Screenshot_Window(hwnd) ; ### The Window must be visible !
+      Protected BMPHandle
+      WindowSize.RECT 
+    GetWindowRect_(hwnd, @WindowSize) 
+    BMPHandle = IO_Get_ScreenShotFromDesktop(WindowSize\Left, WindowSize\Top, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
+    Id=CreateImage(#PB_Any, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
+    StartDrawing(ImageOutput(Id)) 
+    DrawImage(ImageID(BMPHandle),0,0) 
+    StopDrawing()
+    ProcedureReturn Id
+  EndProcedure 
   Procedure IO_Get_ColorFromImage (image, *Position.POINT)
     If *Position\x < 0 Or *Position\x >= ImageWidth(image) Or *Position\y < 0 Or *Position\y >= ImageHeight(image)
       ProcedureReturn -1
@@ -1239,9 +1250,9 @@ CompilerIf 1=1
       
     EndWith
   EndProcedure
-  Procedure IO_Manual_ImagePixelPatterCreator(image,*selection.SelType,List Result.Pixels())
+  Procedure IO_Manual_ImagePixelPatterCreator(image,List Result.Pixels())
     NewList IgnoreButtonCollision.i()
-    
+    selection.SelType
     lastsselection.SelType
     MainWindow = OpenWindow(#PB_Any ,0,0,ImageWidth(image),ImageHeight(image),"Image Pixel Pattern Creator",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
     If MainWindow
@@ -1252,7 +1263,7 @@ CompilerIf 1=1
       DisableGadget(buttonOutput,1)
       
       ; set up selection area boundaries using image gadget 0
-      With *selection
+      With selection
         \limLeft = GadgetX(0)
         \limTop  = GadgetY(0)
         \limRight = \limLeft + GadgetWidth(0)
@@ -1262,10 +1273,11 @@ CompilerIf 1=1
       Repeat ; event loop
         Select WaitWindowEvent(1)
           Case #PB_Event_CloseWindow
-            If GetActiveWindow() = MainWindow
+            If EventWindow() = MainWindow
+              CloseWindow(MainWindow)
               Break
             EndIf
-            If GetActiveWindow() = inspector And IsWindow(inspector)
+            If EventWindow() = inspector And IsWindow(inspector)
               CloseWindow(inspector)
             EndIf
             
@@ -1273,14 +1285,14 @@ CompilerIf 1=1
             Select EventGadget()
               Case button
                 ;New Selection?
-                If CompareMemory(*selection,lastsselection,SizeOf(SelType))
+                If CompareMemory(selection,lastsselection,SizeOf(SelType))
                   Analysismode = (Analysismode +1) %3
                 Else
                   Analysismode = 0
                 EndIf
                 
-                newimage = GrabImage(image,#PB_Any,*selection\left,*selection\top,*selection\right-*selection\left,*selection\bottom - *selection\top)
-                CopyStructure(*selection,lastsselection,SelType)
+                newimage = GrabImage(image,#PB_Any,selection\left,selection\top,selection\right-selection\left,selection\bottom - selection\top)
+                CopyStructure(selection,lastsselection,SelType)
                 If Not newimage
                   Continue
                 EndIf
@@ -1342,6 +1354,12 @@ CompilerIf 1=1
                   ForEach Plots()
                     Text + "AddElement(Pixels()) : Pixels()\x = "+Str(Plots()\x)+" : Pixels()\y = "+Str(Plots()\y)+" : Pixels()\color = "+Str(Plots()\Color)+""+#LF$
                   Next
+                  
+                  Text.s + "ScreenshotPosition.RECT\left = "+Str(selection\left)+#LF$
+                  Text.s + "ScreenshotPosition\right = "+Str(selection\right)+#LF$
+                  Text.s + "ScreenshotPosition\top = "+Str(selection\top)+#LF$
+                  Text.s + "ScreenshotPosition\bottom = "+Str(selection\bottom)+#LF$
+                  
                   choice = MessageRequester("Result","Press OK to copy the resulting code to clipboard:"+#LF$+Text,#PB_MessageRequester_YesNo)
                   If choice = #PB_MessageRequester_Yes
                     SetClipboardText(text)
@@ -1353,7 +1371,6 @@ CompilerIf 1=1
             ;Check if button hit - then do not destryo the rectangle!
             If IsWindow(inspector) And EventWindow() = MainWindow
               CloseWindow(inspector)
-              Continue
             EndIf
             
             ForEach IgnoreButtonCollision()
@@ -3901,9 +3918,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 970
-; FirstLine = 30
-; Folding = AAAAAAAAAABBAAAAAARBCIAAAAAAAAA+
+; CursorPosition = 1372
+; FirstLine = 115
+; Folding = AAAAAAAAAABBAoAAAAiCEQAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

@@ -2439,7 +2439,7 @@ CompilerIf 1=1
     Procedure SendTextFrame(connection, message.s)
       
       If Not connection
-        Debug "no connection?"
+        Debug "SendTextFrame: no connection?"
         ProcedureReturn 0
       EndIf
       
@@ -3520,6 +3520,11 @@ CompilerIf 1=1
   EndProcedure
   ;}
   Procedure.s IO_Get_Chrome_Response(connection,timeout = 0)
+    If connection = 0
+      Debug "IO_Get_Chrome_Response: no connectionid!"
+      ProcedureReturn ""
+    EndIf
+    
     p = ElapsedMilliseconds()
     Packet$ = ""
     Repeat
@@ -3630,6 +3635,9 @@ CompilerIf 1=1
       ChromeDefaultObjectAdd(JSONValue(json))
       FreeJSON(json)
     EndIf
+    
+    IO_Get_Chrome_OpenWebSocket(MapKey(Chrome\Objects()))
+    
     ProcedureReturn MapKey(Chrome\Objects())
   EndProcedure
   Procedure   IO_Set_Chrome_ActivateTab(TabID.s)
@@ -3948,9 +3956,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3591
-; FirstLine = 415
-; Folding = AAAAAAAAAAAAAAAAAACAAgZgAABAAAA5
+; CursorPosition = 3575
+; FirstLine = 369
+; Folding = AAAAAAAAAAAAAAAAAACAAgZAAAnS+DA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

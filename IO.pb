@@ -3550,6 +3550,9 @@ CompilerIf 1=0
   EndProcedure
   
   ;HTTP-Endpoints
+  Procedure   IO_Set_Chrome_Start()
+    RunProgram("chrome.exe", "--remote-debugging-port=9222",GetCurrentDirectory())
+  EndProcedure
   Procedure   IO_Get_Chrome_List()
     HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/list")
     If HttpRequest
@@ -3918,9 +3921,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1372
-; FirstLine = 115
-; Folding = AAAAAAAAAABBAoAAAAiCEQAAAAAAAAA9
+; CursorPosition = 3552
+; FirstLine = 38
+; Folding = AAAAAAAAAAAAAAAAAACAAAAAAABAAAA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

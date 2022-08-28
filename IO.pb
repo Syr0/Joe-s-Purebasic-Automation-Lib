@@ -1,7 +1,7 @@
 ﻿UsePNGImageEncoder()
 UseMD5Fingerprint() 
 ExamineDesktops()
-
+InitNetwork()
 ;Tips
 ;#1 Use Ctrl+F4 to collapse all foldings
 ;#2 Create a Project and add this file to the project files to use autocomplete
@@ -1711,7 +1711,7 @@ CompilerEndIf
 ;--------------------------;
 ;   Using external Tools   ;
 ;--------------------------;
-CompilerIf 1=0
+CompilerIf 1=1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
     Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
@@ -2438,6 +2438,11 @@ CompilerIf 1=0
     
     Procedure SendTextFrame(connection, message.s)
       
+      If Not connection
+        Debug "no connection?"
+        ProcedureReturn 0
+      EndIf
+      
       ; Put String in Buffer
       MsgLength.l = StringByteLength(message.s, #PB_UTF8)
       *MsgBuffer = AllocateMemory(MsgLength)
@@ -3012,7 +3017,7 @@ CompilerIf 1=0
     PrintN("Protocol: "+IO_Get_EthernetServiceIDtoName(*Packet\IP_Protocol))
     Select *Packet\IP_Protocol
       Case 1 :
-        intresting = ReadICMPPaket(*Packet\DataBuffer,*Packet\DataBufferLength) ; ICMP
+        intresting = IO_Check_ReadICMPPaket(*Packet\DataBuffer,*Packet\DataBufferLength) ; ICMP
       Case 6                                                                    ;TCP
       Case 17                                                                   ; UDP
     EndSelect
@@ -3550,8 +3555,20 @@ CompilerIf 1=0
   EndProcedure
   
   ;HTTP-Endpoints
-  Procedure   IO_Set_Chrome_Start()
+  Procedure   IO_Set_Chrome_Start() ;TODO WARNING THIS CLOSES CHROME
+    ;kill all old instances of chrome
+    NewList Processlist.ProcessName()
+    IO_Get_AllProcess(Processlist.ProcessName())
+    ForEach Processlist()
+      Debug Processlist()\Name
+      If FindString(Processlist()\Name,"chrome")
+        IO_Set_KillProcess(Processlist()\PID)
+      EndIf
+    Next
+    FreeList(Processlist())
+    ;Start chrome with debug port on
     RunProgram("chrome.exe", "--remote-debugging-port=9222",GetCurrentDirectory())
+    
   EndProcedure
   Procedure   IO_Get_Chrome_List()
     HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/list")
@@ -3603,6 +3620,11 @@ CompilerIf 1=0
     Else
       ProcedureReturn ""
     EndIf
+    If Response$ = ""
+      Debug "No response on debug-port-connection!"
+      ProcedureReturn ""
+    EndIf
+    
     json = ParseJSON(#PB_Any,Response$)
     If json
       ChromeDefaultObjectAdd(JSONValue(json))
@@ -3641,6 +3663,11 @@ CompilerIf 1=0
   
   ;Chrome Debug API
   Procedure.i IO_Set_Chrome_PageNavigate(TabID.s,*Returnvalue.PageNavigateReturn,url.s,referrer.s="",transitionType.i=-1,frameId.i=-1,referrerPolicy.i=-1)
+    If Len(TabID) = 0
+      Debug "IO_Set_Chrome_PageNavigate: TabID is null"
+      ProcedureReturn 0
+    EndIf
+    
     json = CreateJSON(#PB_Any) 
     params = ChromeDefaultJson(json,"Page.navigate");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
     
@@ -3921,9 +3948,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3552
-; FirstLine = 38
-; Folding = AAAAAAAAAAAAAAAAAACAAAAAAABAAAA5
+; CursorPosition = 3591
+; FirstLine = 415
+; Folding = AAAAAAAAAAAAAAAAAACAAgZgAABAAAA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

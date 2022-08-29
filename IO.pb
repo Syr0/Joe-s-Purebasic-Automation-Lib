@@ -989,8 +989,8 @@ CompilerIf 1=1
     ProcedureReturn img
   EndProcedure
   Procedure IO_Get_Screenshot_Window(hwnd) ; ### The Window must be visible !
-      Protected BMPHandle
-      WindowSize.RECT 
+    Protected BMPHandle
+    WindowSize.RECT 
     GetWindowRect_(hwnd, @WindowSize) 
     BMPHandle = IO_Get_ScreenShotFromDesktop(WindowSize\Left, WindowSize\Top, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
     Id=CreateImage(#PB_Any, WindowSize\Right - WindowSize\Left, WindowSize\Bottom - WindowSize\Top) 
@@ -3018,8 +3018,8 @@ CompilerIf 1=1
     Select *Packet\IP_Protocol
       Case 1 :
         intresting = IO_Check_ReadICMPPaket(*Packet\DataBuffer,*Packet\DataBufferLength) ; ICMP
-      Case 6                                                                    ;TCP
-      Case 17                                                                   ; UDP
+      Case 6                                                                             ;TCP
+      Case 17                                                                            ; UDP
     EndSelect
     If intresting
       ConsoleColor(10,0)
@@ -3458,7 +3458,7 @@ CompilerIf 1=1
   ;{ Chrome Automation
   ;NOTE: Start Chrome with debug mode on to use these functions:
   ;chrome.exe --remote-debugging-port=9222
-  
+  ;Docu: https://chromedevtools.github.io/devtools-protocol/tot/Runtime/
   
   ;{ Structures
   Structure WebSocket
@@ -3489,6 +3489,10 @@ CompilerIf 1=1
     Version.vs
     RequestId.i
   EndStructure;}
+  Structure Tabs
+    TabID.s
+    Title.s
+  EndStructure
   
   
   Global IO_Get_Chrome_DebugPort = 9222
@@ -3514,7 +3518,7 @@ CompilerIf 1=1
     SetJSONObject(params)
     ProcedureReturn params
   EndProcedure
-  Procedure   IO_Get_Chrome_OpenWebSocket(TabID.s)
+  Procedure   IO_Get_Chrome_RegisterTabConnection(TabID.s)
     Chrome\Objects(TabID)\WsConnection = WebsocketClient::OpenWebsocketConnection(Chrome\Objects(TabID)\webSocketDebuggerUrl)
     ProcedureReturn #True
   EndProcedure
@@ -3561,11 +3565,10 @@ CompilerIf 1=1
   
   ;HTTP-Endpoints
   Procedure   IO_Set_Chrome_Start() ;TODO WARNING THIS CLOSES CHROME
-    ;kill all old instances of chrome
+                                    ;kill all old instances of chrome
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist.ProcessName())
     ForEach Processlist()
-      Debug Processlist()\Name
       If FindString(Processlist()\Name,"chrome")
         IO_Set_KillProcess(Processlist()\PID)
       EndIf
@@ -3636,7 +3639,7 @@ CompilerIf 1=1
       FreeJSON(json)
     EndIf
     
-    IO_Get_Chrome_OpenWebSocket(MapKey(Chrome\Objects()))
+    IO_Get_Chrome_RegisterTabConnection(MapKey(Chrome\Objects()))
     
     ProcedureReturn MapKey(Chrome\Objects())
   EndProcedure
@@ -3648,12 +3651,40 @@ CompilerIf 1=1
     Else
       ProcedureReturn -1
     EndIf
+    IO_Get_Chrome_RegisterTabConnection(TabID)
     If Response$ = "Target activated"
       ProcedureReturn 1
     Else
       ProcedureReturn 0
     EndIf
   EndProcedure
+  
+  Procedure IO_Get_Chrome_ListAllTabs(List Results.Tabs())
+    IO_Get_Chrome_List()
+    ForEach Chrome\Objects()
+      If Left(Chrome\Objects()\url,19) = "chrome-extension://"
+        Continue
+      EndIf
+      If Chrome\Objects()\title = ""
+        Continue
+      EndIf
+      If Left(Chrome\Objects()\url,19) = "chrome-untrusted://"
+        Continue
+      EndIf
+      
+      AddElement(Results())
+      Results()\Title = Chrome\Objects()\title
+      DebugUrl$ = Chrome\Objects()\webSocketDebuggerUrl
+      Results()\TabID = StringField(DebugUrl$,CountString(DebugUrl$,"/")+1,"/")
+    Next
+  ; NewList Results.tabs()
+  ; ListAllTabs(Results())
+  ; ForEach Results()
+  ;   Debug Results()\TabID
+  ;   Debug Results()\Title
+  ; Next
+  EndProcedure
+  
   Procedure   IO_Set_Chrome_CloseTab(TabID.s)
     HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/close/"+TabID)
     If HttpRequest
@@ -3667,6 +3698,36 @@ CompilerIf 1=1
     Else
       ProcedureReturn 0
     EndIf
+  EndProcedure
+  Procedure   IO_Set_Chrome_CloseAllTabs()
+    
+    IO_Get_Chrome_List()
+    first = 1
+    ForEach Chrome\Objects()
+      If Left(Chrome\Objects()\url,19) = "chrome://newtab/"
+        Continue
+      Else
+        
+;        If first
+;          first = 0
+;          Continue
+;        EndIf
+;        
+;          DebugUrl$ = Chrome\Objects()\webSocketDebuggerUrl
+          Tabid.s = StringField(DebugUrl$,CountString(DebugUrl$,"/")+1,"/")
+         
+         IO_Set_Chrome_CloseTab(Tabid)
+;       If Left(Chrome\Objects()\url,19) = "chrome-extension://"
+;         Continue
+;       EndIf
+;       If Chrome\Objects()\title = ""
+;         Continue
+;       EndIf
+;       If Left(Chrome\Objects()\url,19) = "chrome-untrusted://"
+;         Continue
+       EndIf
+    Next
+    
   EndProcedure
   
   ;Chrome Debug API
@@ -3783,7 +3844,7 @@ CompilerIf 1=1
     request$ = ComposeJSON(json):FreeJSON(json)
     
   EndProcedure
-  Procedure.s IO_Get_Chrome_HMTL(TabID.s)
+  Procedure.s IO_Get_Chrome_HTML(TabID.s)
     
     ;Warning This uses Javascript and can be detected by the website!
     Filename$ = "Controller_Download_Text"
@@ -3814,6 +3875,9 @@ CompilerIf 1=1
   EndProcedure
   Procedure IO_Set_Chrome_JS_ClickOnButtonByClass(TabID.s,Classname.s)
     IO_Check_Chrome_Runtimeevaluate(TabID,"document.querySelector('."+ReplaceString(Classname," ",".")+"').click();")
+  EndProcedure
+  Procedure IO_Set_Chrome_JS_Query(TabID.s,Query.s)
+    IO_Check_Chrome_Runtimeevaluate(TabID,Query)
   EndProcedure
   ;}
   
@@ -3956,9 +4020,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3575
-; FirstLine = 369
-; Folding = AAAAAAAAAAAAAAAAAACAAgZAAAnS+DA5
+; CursorPosition = 3653
+; FirstLine = 3491
+; Folding = --------------------------ngAA---
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

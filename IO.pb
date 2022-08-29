@@ -909,7 +909,18 @@ CompilerIf 1=1
   ; CreateNet(Neural_network(),Neural_params())
   
   ;}
+  ;{ Windowing
+  Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
   
+  If IsWindow(PurebasicWindowHandle)
+    Protected WindowID = WindowID(PurebasicWindowHandle)
+    SetWindowLongPtr_(WindowID,#GWL_EXSTYLE,#WS_EX_LAYERED)
+    SetLayeredWindowAttributes_(WindowID,0,alpha,#LWA_ALPHA)
+  EndIf
+  EndProcedure
+  
+  openc
+  ;}
   ;{ Visual Output
   ;{ Structures
   Structure Pixels
@@ -3689,12 +3700,12 @@ CompilerIf 1=1
       DebugUrl$ = Chrome\Objects()\webSocketDebuggerUrl
       Results()\TabID = StringField(DebugUrl$,CountString(DebugUrl$,"/")+1,"/")
     Next
-  ; NewList Results.tabs()
-  ; ListAllTabs(Results())
-  ; ForEach Results()
-  ;   Debug Results()\TabID
-  ;   Debug Results()\Title
-  ; Next
+    ; NewList Results.tabs()
+    ; ListAllTabs(Results())
+    ; ForEach Results()
+    ;   Debug Results()\TabID
+    ;   Debug Results()\Title
+    ; Next
   EndProcedure
   
   Procedure   IO_Set_Chrome_CloseTab(TabID.s)
@@ -3720,24 +3731,24 @@ CompilerIf 1=1
         Continue
       Else
         
-;        If first
-;          first = 0
-;          Continue
-;        EndIf
-;        
-;          DebugUrl$ = Chrome\Objects()\webSocketDebuggerUrl
-          Tabid.s = StringField(DebugUrl$,CountString(DebugUrl$,"/")+1,"/")
-         
-         IO_Set_Chrome_CloseTab(Tabid)
-;       If Left(Chrome\Objects()\url,19) = "chrome-extension://"
-;         Continue
-;       EndIf
-;       If Chrome\Objects()\title = ""
-;         Continue
-;       EndIf
-;       If Left(Chrome\Objects()\url,19) = "chrome-untrusted://"
-;         Continue
-       EndIf
+        ;        If first
+        ;          first = 0
+        ;          Continue
+        ;        EndIf
+        ;        
+        ;          DebugUrl$ = Chrome\Objects()\webSocketDebuggerUrl
+        Tabid.s = StringField(DebugUrl$,CountString(DebugUrl$,"/")+1,"/")
+        
+        IO_Set_Chrome_CloseTab(Tabid)
+        ;       If Left(Chrome\Objects()\url,19) = "chrome-extension://"
+        ;         Continue
+        ;       EndIf
+        ;       If Chrome\Objects()\title = ""
+        ;         Continue
+        ;       EndIf
+        ;       If Left(Chrome\Objects()\url,19) = "chrome-untrusted://"
+        ;         Continue
+      EndIf
     Next
     
   EndProcedure
@@ -4032,9 +4043,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1573
-; FirstLine = 1535
-; Folding = ----------------bg--------ngAA---
+; CursorPosition = 1433
+; FirstLine = 15
+; Folding = AAAAAAAAAABDAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

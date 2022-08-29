@@ -919,7 +919,6 @@ CompilerIf 1=1
   EndIf
   EndProcedure
   
-  openc
   ;}
   ;{ Visual Output
   ;{ Structures
@@ -4043,7 +4042,7 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 1433
+; CursorPosition = 920
 ; FirstLine = 15
 ; Folding = AAAAAAAAAABDAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread

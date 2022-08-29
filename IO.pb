@@ -1,4 +1,5 @@
 ﻿UsePNGImageEncoder()
+UsePNGImageDecoder()
 UseMD5Fingerprint() 
 ExamineDesktops()
 InitNetwork()
@@ -2347,7 +2348,7 @@ CompilerIf 1=1
   DeclareModule WebsocketClient
     Declare OpenWebsocketConnection(URL.s)
     Declare SendTextFrame(connection, message.s)
-    Declare ReceiveFrame(connection, *MsgBuffer)
+    Declare ReceiveFrame(connection, *MsgBuffer,ReceiveFrame=0)
     Declare SetSSLProxy(ProxyServer.s = "", ProxyPort.l = 8182)
     
     Enumeration 1000
@@ -2539,17 +2540,23 @@ CompilerIf 1=1
       
     EndProcedure
     
-    Procedure ReceiveFrame(connection, *Frametyp.WebSocket)
-      *FrameBuffer = AllocateMemory(65536)
+    Procedure ReceiveFrame(connection, *Frametyp.WebSocket,ReturnResponseMemory=0)
+      *FrameBuffer = AllocateMemory(1)
       
+      ;Syr2: Added Chunk-Support
+      Chunkposition = 0
       Repeat
-        *FrameBuffer = ReAllocateMemory(*FrameBuffer, 65536)
-        Size = ReceiveNetworkData(connection, *FrameBuffer, 65536)
+        *FrameBuffer = ReAllocateMemory(*FrameBuffer, MemorySize(*FrameBuffer)+65536)
+        Size = ReceiveNetworkData(connection, *FrameBuffer+Chunkposition, 65536)
+        Chunkposition + Size
         ;Answer.s = Answer.s + PeekS(*FrameBuffer, Size, #PB_UTF8)
       Until Size <> 65536
-      dbg("Received Frame, Bytes: " + Str(Size))
+      dbg("Received Frame, Bytes: " + Str(Chunkposition))
       
-      *FrameBuffer = ReAllocateMemory(*FrameBuffer, Size)
+      *FrameBuffer = ReAllocateMemory(*FrameBuffer, Chunkposition)
+      If ReturnResponseMemory
+        ProcedureReturn *FrameBuffer
+      EndIf
       
       ;     ; debug: output any single byte
       ;     If #PB_Compiler_Debugger
@@ -3545,7 +3552,7 @@ CompilerIf 1=1
     ProcedureReturn #True
   EndProcedure
   ;}
-  Procedure.s IO_Get_Chrome_Response(connection,timeout = 0)
+  Procedure.s IO_Get_Chrome_Response(connection,timeout = 0,ReturnResponsePointer=0)
     If connection = 0
       Debug "IO_Get_Chrome_Response: no connectionid!"
       ProcedureReturn ""
@@ -3560,11 +3567,16 @@ CompilerIf 1=1
         Select NetworkEvent
           Case #PB_NetworkEvent_Data
             Frametyp.Websocket\FrameMemory = AllocateMemory(1)
-            Frametyp\Frametyp = WebsocketClient::ReceiveFrame(connection,@Frametyp)
+            Frametyp\Frametyp = WebsocketClient::ReceiveFrame(connection,@Frametyp,ReturnResponsePointer)
+            If ReturnResponsePointer
+              ProcedureReturn Str(Frametyp\Frametyp)
+            EndIf
             If Frametyp\Frametyp = WebsocketClient::#frame_text
               Packet$ + PeekS(Frametyp\FrameMemory,MemoryStringLength(Frametyp\FrameMemory,#PB_UTF8)-1,#PB_UTF8)
             ElseIf Frametyp\Frametyp = WebsocketClient::#frame_binary
               Debug "Received Binaryframe"
+            Else
+              Debug "IO_Get_Chrome_Response: unknown answer"
             EndIf
             FreeMemory(Frametyp\FrameMemory)
             p = ElapsedMilliseconds()
@@ -3773,23 +3785,34 @@ CompilerIf 1=1
     WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
     IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection)
   EndProcedure
-  Procedure.s IO_Get_Chrome_captureScreenshot(TabID.s)
+  Procedure.i IO_Get_Chrome_captureScreenshot(TabID.s)
     ;https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-captureScreenshot
     json = CreateJSON(#PB_Any) 
     params = ChromeDefaultJson(json,"Page.captureScreenshot");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
     
-    ;Page.navigate Parameters
-         SetJSONString(AddJSONMember(params, "format"), "png")
-;     If Len(referrer ) > 0  : SetJSONString(AddJSONMember(params, "referrer"), referrer) :EndIf
-;     If transitionType > 0  : SetJSONInteger(AddJSONMember(params, "transitionType"), transitionType) :EndIf
-;     If frameId > 0  : SetJSONInteger(AddJSONMember(params, "frameId"), frameId) :EndIf
-;     If referrerPolicy > 0  : SetJSONInteger(AddJSONMember(params, "referrerPolicy"), referrerPolicy) :EndIf
+    SetJSONString(AddJSONMember(params, "format"), "png")
     request$ = ComposeJSON(json):FreeJSON(json)
-;     FreeJSON(json)
     ;Hau raus die Scheisse
+    
     WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
-    ProcedureReturn IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection)
-
+    Delay(600);Yes UGLY - but Im lazy - would need to check for old and new packlages and put them together (which also happens , but chunks need to be 65k bytes big and not super-small)
+    Memory = Val( IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,0,1))
+    MemorySize = MemorySize(Memory)
+    For x = 0 To MemorySize-4
+      If PeekS(Memory+x,7,#PB_UTF8) = "data"+Chr(34)+":"+Chr(34)
+        ok = 1
+        Break
+      EndIf
+    Next
+    If ok
+      Base64$ = PeekS(Memory+x+7,MemorySize-x,#PB_UTF8)
+      *ImageMemory = AllocateMemory(Len(Base64$)*6/8)
+      Base64Decoder(Base64$,*ImageMemory,MemorySize(*ImageMemory))
+      image = CatchImage(#PB_Any,*ImageMemory)
+      FreeMemory(*ImageMemory)
+      ProcedureReturn image
+    EndIf
+    
   EndProcedure
   Procedure.s IO_Set_Chrome_DOMenable(TabID.s,enable)
     json = CreateJSON(#PB_Any) 
@@ -3810,7 +3833,7 @@ CompilerIf 1=1
     SetJSONInteger(AddJSONMember(params, "depth"), depth)
     ;   SetJSONInteger(AddJSONMember(params, "pierce"), pierce)
     
-    Debug IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,200)
+    IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,200)
     request$ = ComposeJSON(json):FreeJSON(json)
     WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
     Result$ = IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection,5000)
@@ -4059,9 +4082,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3789
-; FirstLine = 111
-; Folding = AAAAAAAAAABDAAAAAAIAAAEAAAEAgNAA5
+; CursorPosition = 3600
+; FirstLine = 520
+; Folding = AAAAAAAAAABDAAAAAAIAAAmFEAEEAAAA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

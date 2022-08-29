@@ -1553,8 +1553,11 @@ CompilerIf 1=1
   ;}
   
   ;{ Util - File
-  Procedure IO_Get_FilesInFolder(Folder.s,List Results.s(),recursive=1)
-    d = ExamineDirectory(#PB_Any,folder,"*.")
+  Procedure IO_Get_FilesInFolder(Folder.s,List Results.s(),recursive=1,extention.s="")
+    If Right(Folder,1) = "\"
+      Folder = RTrim(Folder,"\")
+    EndIf
+    d = ExamineDirectory(#PB_Any,folder,"*.*")
     If Not IsDirectory(d)
       ProcedureReturn
     EndIf
@@ -1564,14 +1567,23 @@ CompilerIf 1=1
       If name$ = "." Or name$ = ".."
         Continue
       EndIf
-      If DirectoryEntryType(d) = #PB_DirectoryEntry_Directory
-        If recursive
-          IO_Get_FilesInFolder(Folder+"\"+name$,Results(),recursive)
-        EndIf
-        Continue
-      ElseIf DirectoryEntryType(d) = #PB_DirectoryEntry_File
-        AddElement(Results()) : Results() = Folder+name$
-      EndIf
+      Type = DirectoryEntryType(d)
+      Select type
+        Case #PB_DirectoryEntry_Directory
+          If recursive
+            IO_Get_FilesInFolder(Folder+"\"+name$,Results(),recursive,extention)
+          EndIf
+          Continue
+        Case #PB_DirectoryEntry_File
+          extention$ = StringField(name$,CountString(name$,".")+1,".")
+          If Len(extention) > 0
+            If extention$ = extention
+              AddElement(Results()) : Results() = Folder+"\"+name$
+            EndIf
+          Else
+            AddElement(Results()) : Results() = Folder+"\"+name$
+          EndIf
+      EndSelect 
     Wend
     FinishDirectory(d)
   EndProcedure
@@ -4020,9 +4032,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3653
-; FirstLine = 3491
-; Folding = --------------------------ngAA---
+; CursorPosition = 1573
+; FirstLine = 1535
+; Folding = ----------------bg--------ngAA---
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

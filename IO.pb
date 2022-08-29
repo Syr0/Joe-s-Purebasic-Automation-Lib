@@ -3772,7 +3772,24 @@ CompilerIf 1=1
     ;Hau raus die Scheisse
     WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
     IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection)
+  EndProcedure
+  Procedure.s IO_Get_Chrome_captureScreenshot(TabID.s)
+    ;https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-captureScreenshot
+    json = CreateJSON(#PB_Any) 
+    params = ChromeDefaultJson(json,"Page.captureScreenshot");erstelle schonmal en JSON mit Requestid(ein counter) und Methode
     
+    ;Page.navigate Parameters
+         SetJSONString(AddJSONMember(params, "format"), "png")
+;     If Len(referrer ) > 0  : SetJSONString(AddJSONMember(params, "referrer"), referrer) :EndIf
+;     If transitionType > 0  : SetJSONInteger(AddJSONMember(params, "transitionType"), transitionType) :EndIf
+;     If frameId > 0  : SetJSONInteger(AddJSONMember(params, "frameId"), frameId) :EndIf
+;     If referrerPolicy > 0  : SetJSONInteger(AddJSONMember(params, "referrerPolicy"), referrerPolicy) :EndIf
+    request$ = ComposeJSON(json):FreeJSON(json)
+;     FreeJSON(json)
+    ;Hau raus die Scheisse
+    WebsocketClient::SendTextFrame(Chrome\Objects(TabID)\WsConnection,request$)
+    ProcedureReturn IO_Get_Chrome_Response(Chrome\Objects(TabID)\WsConnection)
+
   EndProcedure
   Procedure.s IO_Set_Chrome_DOMenable(TabID.s,enable)
     json = CreateJSON(#PB_Any) 
@@ -4042,9 +4059,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 920
-; FirstLine = 15
-; Folding = AAAAAAAAAABDAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 3789
+; FirstLine = 111
+; Folding = AAAAAAAAAABDAAAAAAIAAAEAAAEAgNAA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

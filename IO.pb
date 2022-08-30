@@ -2550,10 +2550,10 @@ CompilerIf 1=1
     
     Procedure SendTextFrame(connection, message.s)
       
-      If Not connection
-        Debug "SendTextFrame: no connection?"
-        ProcedureReturn 0
-      EndIf
+       If Not connection
+;         Debug "SendTextFrame: no connection?"
+         ProcedureReturn 0
+       EndIf
       
       ; Put String in Buffer
       MsgLength.l = StringByteLength(message.s, #PB_UTF8)
@@ -4172,9 +4172,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 989
-; FirstLine = 13
-; Folding = AAAAAAAAAAACKAAAAAAAAAAAAAAAAAAAAA-
+; CursorPosition = 2555
+; FirstLine = 211
+; Folding = AAAAAAAAAAACKAAAFAAABACyMQAgAA9PAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

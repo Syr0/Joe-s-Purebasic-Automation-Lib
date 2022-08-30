@@ -205,7 +205,51 @@ CompilerIf 1=1
     List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
   EndStructure;}
   NewList Processlist.ProcessName()
+  Procedure.s IO_Get_PathOfProgramInEnviroment(Program.s)
+    Compiler = RunProgram("where", Program, "", #PB_Program_Open | #PB_Program_Read)
+    Output$ = ""
+    If Compiler
+      While ProgramRunning(Compiler)
+        If AvailableProgramOutput(Compiler)
+          Output$ + ReadProgramString(Compiler)
+        EndIf
+      Wend
+      CloseProgram(Compiler) ; Schließt die Verbindung zum Programm
+    EndIf
+    ProcedureReturn Output$
+  EndProcedure
   
+
+  
+  Procedure IO_Set_CloseProcessNicely(hwnd)
+    PostMessage_(hWnd,#WM_CLOSE,0,0)
+  EndProcedure
+  Procedure IO_Get_HwndByPID(PID)
+    Repeat
+      win=FindWindow_(0,0)
+      While win<>0
+        GetWindowThreadProcessId_(win,@PID)
+        If PID=ProcessID : WinHandle=win : Break : EndIf
+        win=GetWindow_(win,#GW_HWNDNEXT)
+      Wend
+    Until WinHandle
+  ProcedureReturn WinHandle
+EndProcedure
+Procedure IO_Set_RunProgramReturnHwnd(file$,param$,flags=#PB_Program_Open )
+  
+  If Len( GetPathPart(file$)) = 0
+    file$ = IO_Get_PathOfProgramInEnviroment(file$)
+    If Len(file$) = 0
+      Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
+    EndIf
+  EndIf
+  Phandle = RunProgram(file$,param$,GetPathPart(file$),flags)
+  pid = ProgramID(Phandle)
+  
+  hwnd = IO_Get_HwndByPID(PID)
+  
+  ProcedureReturn hwnd
+EndProcedure
   Procedure IO_Set_KillProcess (pid)
     phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
     If phandle <> #Null
@@ -252,12 +296,12 @@ CompilerIf 1=1
     EndIf
     CloseLibrary(psapi)
   EndProcedure
-  Procedure IO_Set_CloseProcessByName(filename.s);not title!
+  Procedure IO_Get_PidByProcessname(filename.s);not title!
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist())
     ForEach Processlist()
       If Processlist()\Name = filename
-        IO_Set_KillProcess(Processlist()\PID)
+        ProcedureReturn Processlist()\PID
       EndIf
     Next
   EndProcedure
@@ -3598,7 +3642,7 @@ CompilerIf 1=1
   EndProcedure
   
   ;HTTP-Endpoints
-  Procedure   IO_Set_Chrome_Start() ;TODO WARNING THIS CLOSES CHROME
+  Procedure IO_Set_Chrome_Start(Flags=#SW_SHOW) ;TODO WARNING THIS CLOSES CHROME
                                     ;kill all old instances of chrome
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist.ProcessName())
@@ -3609,8 +3653,9 @@ CompilerIf 1=1
     Next
     FreeList(Processlist())
     ;Start chrome with debug port on
-    RunProgram("chrome.exe", "--remote-debugging-port=9222",GetCurrentDirectory())
-    
+    hWnd=IO_Set_RunProgramReturnHwnd("chrome.exe","--remote-debugging-port=9222")
+
+  ProcedureReturn hWnd
   EndProcedure
   Procedure   IO_Get_Chrome_List()
     HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/list")
@@ -4082,9 +4127,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 3600
-; FirstLine = 520
-; Folding = AAAAAAAAAABDAAAAAAIAAAmFEAEEAAAA5
+; CursorPosition = 243
+; FirstLine = 32
+; Folding = BAAACBAAAAQAAAAAAAACAAAAAAABSAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

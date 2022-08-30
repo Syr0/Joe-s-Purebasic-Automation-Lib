@@ -219,7 +219,7 @@ CompilerIf 1=1
     ProcedureReturn Output$
   EndProcedure
   
-
+  
   
   Procedure IO_Set_CloseProcessNicely(hwnd)
     PostMessage_(hWnd,#WM_CLOSE,0,0)
@@ -233,23 +233,24 @@ CompilerIf 1=1
         win=GetWindow_(win,#GW_HWNDNEXT)
       Wend
     Until WinHandle
-  ProcedureReturn WinHandle
-EndProcedure
-Procedure IO_Set_RunProgramReturnHwnd(file$,param$,flags=#PB_Program_Open )
-  
-  If Len( GetPathPart(file$)) = 0
-    file$ = IO_Get_PathOfProgramInEnviroment(file$)
-    If Len(file$) = 0
-      Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
+    ProcedureReturn WinHandle
+  EndProcedure
+  Procedure IO_Set_RunProgramReturnHwnd(file$,param$,paths.s,flags=#PB_Program_Open)
+    
+    If Len( GetPathPart(file$)) = 0
+      file$ = IO_Get_PathOfProgramInEnviroment(file$)
+      If Len(file$) = 0
+        Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
+      EndIf
     EndIf
-  EndIf
-  Phandle = RunProgram(file$,param$,GetPathPart(file$),flags)
-  pid = ProgramID(Phandle)
-  
-  hwnd = IO_Get_HwndByPID(PID)
-  
-  ProcedureReturn hwnd
-EndProcedure
+    
+    Phandle = RunProgram(file$,param$,paths,flags)
+    If flags = #PB_Program_Open
+      pid = ProgramID(Phandle)
+      hwnd = IO_Get_HwndByPID(PID)
+    EndIf
+    ProcedureReturn hwnd
+  EndProcedure
   Procedure IO_Set_KillProcess (pid)
     phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
     If phandle <> #Null
@@ -956,12 +957,12 @@ CompilerIf 1=1
   ;}
   ;{ Windowing
   Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
-  
-  If IsWindow(PurebasicWindowHandle)
-    Protected WindowID = WindowID(PurebasicWindowHandle)
-    SetWindowLongPtr_(WindowID,#GWL_EXSTYLE,#WS_EX_LAYERED)
-    SetLayeredWindowAttributes_(WindowID,0,alpha,#LWA_ALPHA)
-  EndIf
+    
+    If IsWindow(PurebasicWindowHandle)
+      Protected WindowID = WindowID(PurebasicWindowHandle)
+      SetWindowLongPtr_(WindowID,#GWL_EXSTYLE,#WS_EX_LAYERED)
+      SetLayeredWindowAttributes_(WindowID,0,alpha,#LWA_ALPHA)
+    EndIf
   EndProcedure
   
   ;}
@@ -3642,8 +3643,8 @@ CompilerIf 1=1
   EndProcedure
   
   ;HTTP-Endpoints
-  Procedure IO_Set_Chrome_Start(Flags=#SW_SHOW) ;TODO WARNING THIS CLOSES CHROME
-                                    ;kill all old instances of chrome
+  Procedure IO_Set_Chrome_Start() ;TODO WARNING THIS CLOSES CHROME
+                                  ;kill all old instances of chrome
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist.ProcessName())
     ForEach Processlist()
@@ -3653,9 +3654,9 @@ CompilerIf 1=1
     Next
     FreeList(Processlist())
     ;Start chrome with debug port on
-    hWnd=IO_Set_RunProgramReturnHwnd("chrome.exe","--remote-debugging-port=9222")
-
-  ProcedureReturn hWnd
+    ;TODO Not allowed to #PB_Program_Open
+    RunProgram("chrome.exe", "--remote-debugging-port=9222",GetCurrentDirectory())
+    
   EndProcedure
   Procedure   IO_Get_Chrome_List()
     HttpRequest = HTTPRequestMemory(#PB_HTTP_Get, "localhost:"+Str(IO_Get_Chrome_DebugPort)+"/json/list")
@@ -4127,9 +4128,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 243
-; FirstLine = 32
-; Folding = BAAACBAAAAQAAAAAAAACAAAAAAABSAAAA+
+; CursorPosition = 806
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

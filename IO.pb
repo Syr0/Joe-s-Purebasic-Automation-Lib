@@ -161,7 +161,7 @@ CompilerIf 1=1
   ;}
   
   ;{ InterProcessCommunication
-  Procedure IO_Set_SendCommand(hwnd,wm_command)
+  Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
     PostMessage_(hWnd,wm_command,0,0)
   EndProcedure
   ;}
@@ -219,13 +219,23 @@ CompilerIf 1=1
     EndIf
     ProcedureReturn Output$
   EndProcedure
-  
-  
-  
-  Procedure IO_Set_CloseProcessNicely(hwnd)
+  Procedure IO_Set_CloseWindowNicely(hwnd)
     PostMessage_(hWnd,#WM_CLOSE,0,0)
   EndProcedure
-  
+  Procedure IO_Set_MaxWindowNicely(hwnd)
+    ShowWindow_(hwnd,#SW_MAXIMIZE)
+  EndProcedure
+  Procedure IO_Set_hideWindowNicely(hwnd,hide=1)
+    If hide
+      ShowWindow_(hwnd,#SW_HIDE)
+    Else
+      ShowWindow_(hwnd,#SW_RESTORE)
+    EndIf
+  EndProcedure
+  Procedure IO_Set_MinWindowNicely(hwnd)
+    ShowWindow_(hwnd,#SW_MINIMIZE)
+  EndProcedure
+    
   Procedure IO_Set_KillProcess (pid)
     phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
     If phandle <> #Null
@@ -977,7 +987,13 @@ CompilerIf 1=1
       SetLayeredWindowAttributes_(WindowID,0,alpha,#LWA_ALPHA)
     EndIf
   EndProcedure
-  
+  Procedure IO_Set_TransparentWindowColor(PurebasicWindowHandle, All=1,Color=#Blue);for best results, make it borderless!
+    If All
+      SetWindowColor(PurebasicWindowHandle,Color)
+    EndIf
+    SetWindowLong_(WindowID(PurebasicWindowHandle), #GWL_EXSTYLE, #WS_EX_LAYERED | #WS_EX_TOPMOST)
+    SetLayeredWindowAttributes_(WindowID(PurebasicWindowHandle),Color,0,#LWA_COLORKEY)
+  EndProcedure
   ;}
   ;{ Visual Output
   ;{ Structures
@@ -1077,6 +1093,22 @@ CompilerIf 1=1
     color = Point(*Position\x,*Position\y)
     StopDrawing()
     ProcedureReturn color
+  EndProcedure
+  Procedure IO_Get_PixelnImage(image,color,threshold.f,*result.POINT)
+    StartDrawing(ImageOutput(image))
+    For x = 0 To ImageWidth(image)-1
+      For y = 0 To ImageHeight(image)-1
+        c = Point(x,y)
+        If Red(c)  +Threshold >= Red(Color)   And Red(c)  -Threshold <= Red(Color)   And
+           Green(c)+Threshold >= Green(Color) And Green(c)-Threshold <= Green(Color) And
+           Blue(c) +Threshold >= Blue(Color)  And Blue(c) -Threshold <= Blue(Color) 
+          *result\x = x
+          *result\y = y
+          Break  
+        EndIf
+      Next
+    Next
+    StopDrawing()
   EndProcedure
   Procedure IO_Check_PixelPattern(image,List Pixels.Pixels())
     StartDrawing(ImageOutput(image))
@@ -1193,7 +1225,6 @@ CompilerIf 1=1
       InvalidateRect_(hWnd, #Null, #True)
     EndIf
   EndProcedure 
-  
   Procedure IO_Get_PurebasicGadgetHwnd(Gadget)
     ProcedureReturn GadgetID(Gadget)
   EndProcedure
@@ -4141,9 +4172,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 334
-; FirstLine = 136
-; Folding = BAAAGQAAAAAAAAAAAAACAAAAAAABAAAAA+
+; CursorPosition = 989
+; FirstLine = 13
+; Folding = AAAAAAAAAAACKAAAAAAAAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

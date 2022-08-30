@@ -197,9 +197,10 @@ CompilerIf 1=1
     Class.s
     Text.s
   EndStructure
-  Structure GetAllHwndAndTitles
+  Structure GetAllHwndTitlesAndPID
     Title.s
     hwnd.i
+    Pid.i
   EndStructure
   Structure NestedList
     List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
@@ -224,33 +225,7 @@ CompilerIf 1=1
   Procedure IO_Set_CloseProcessNicely(hwnd)
     PostMessage_(hWnd,#WM_CLOSE,0,0)
   EndProcedure
-  Procedure IO_Get_HwndByPID(PID)
-    Repeat
-      win=FindWindow_(0,0)
-      While win<>0
-        GetWindowThreadProcessId_(win,@PID)
-        If PID=ProcessID : WinHandle=win : Break : EndIf
-        win=GetWindow_(win,#GW_HWNDNEXT)
-      Wend
-    Until WinHandle
-    ProcedureReturn WinHandle
-  EndProcedure
-  Procedure IO_Set_RunProgramReturnHwnd(file$,param$,paths.s,flags=#PB_Program_Open)
-    
-    If Len( GetPathPart(file$)) = 0
-      file$ = IO_Get_PathOfProgramInEnviroment(file$)
-      If Len(file$) = 0
-        Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
-      EndIf
-    EndIf
-    
-    Phandle = RunProgram(file$,param$,paths,flags)
-    If flags = #PB_Program_Open
-      pid = ProgramID(Phandle)
-      hwnd = IO_Get_HwndByPID(PID)
-    EndIf
-    ProcedureReturn hwnd
-  EndProcedure
+  
   Procedure IO_Set_KillProcess (pid)
     phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
     If phandle <> #Null
@@ -335,7 +310,7 @@ CompilerIf 1=1
     EndIf
     ProcedureReturn #False
   EndProcedure
-  Procedure IO_Get_AllHwndAndTitles(List Result.GetAllHwndAndTitles())
+  Procedure IO_Get_AllHwndTitlesAndPid(List Result.GetAllHwndTitlesAndPID())
     Repeat
       sz = ListSize(Result())
       Repeat 
@@ -346,16 +321,19 @@ CompilerIf 1=1
           hWnd = GetWindow_(hWnd, #GW_HWNDNEXT) 
         EndIf 
         If hWnd <> 0 
-          If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_VISIBLE = #WS_VISIBLE
-            If GetWindowLong_(hWnd, #GWL_EXSTYLE) & #WS_EX_TOOLWINDOW <> #WS_EX_TOOLWINDOW
+;           If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_VISIBLE = #WS_VISIBLE
+;             If GetWindowLong_(hWnd, #GWL_EXSTYLE) & #WS_EX_TOOLWINDOW <> #WS_EX_TOOLWINDOW
               ret.s = Space(256) 
+              Pid = 0
+              GetWindowThreadProcessId_(hwnd,@PID)
               GetWindowText_(hWnd, ret, 256) 
               AddElement(Result())
               Result()\Title = ret
               Result()\hwnd = hwnd
+              Result()\PID = Pid
               If ret <> "" : Break : EndIf 
-            EndIf 
-          EndIf 
+;             EndIf 
+;           EndIf 
         Else 
           Flag = 0 
         EndIf 
@@ -365,13 +343,48 @@ CompilerIf 1=1
       EndIf
     ForEver
     ;{ EXAMPLE
-    ; NewList test.GetAllHwndAndTitles()
+    ; NewList test.GetAllHwndTitlesAndPID()
     ; IO_Get_AllHwndAndTitles(test())
     ; ForEach test()
     ;   Debug test()\Title
     ; Next
     ;}
+  EndProcedure
+  Procedure IO_Get_HwndByPID(PID)
+    NewList Result.GetAllHwndTitlesAndPiD()
+    IO_Get_AllHwndTitlesAndPid(Result())
+    ForEach Result()
+      If Result()\Pid = pid
+        ProcedureReturn Result()\hwnd
+      EndIf
+    Next
+    x = 0
+    Repeat
+      x+1
+      win=FindWindow_(0,0)
+      While win<>0
+        GetWindowThreadProcessId_(win,@PID)
+        If PID=ProcessID : WinHandle=win : Break : EndIf
+        win=GetWindow_(win,#GW_HWNDNEXT)
+      Wend
+    Until WinHandle Or x > ListSize(Result())
+    ProcedureReturn WinHandle
+  EndProcedure
+  Procedure IO_Set_RunProgramReturnHwnd(file$,param$,paths.s,flags=#PB_Program_Open)
     
+    If Len( GetPathPart(file$)) = 0
+      file$ = IO_Get_PathOfProgramInEnviroment(file$)
+      If Len(file$) = 0
+        Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
+      EndIf
+    EndIf
+    
+    Phandle = RunProgram(file$,param$,paths,flags)
+    If flags = #PB_Program_Open
+      pid = ProgramID(Phandle)
+      hwnd = IO_Get_HwndByPID(PID)
+    EndIf
+    ProcedureReturn hwnd
   EndProcedure
   Procedure IO_Get_HwndByTitle(Text$)
     hwnd = FindWindow_(0, @Text$)
@@ -3643,7 +3656,7 @@ CompilerIf 1=1
   EndProcedure
   
   ;HTTP-Endpoints
-  Procedure IO_Set_Chrome_Start() ;TODO WARNING THIS CLOSES CHROME
+  Procedure IO_Set_Chrome_Start(urls.s = "") ;TODO WARNING THIS CLOSES CHROME
                                   ;kill all old instances of chrome
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist.ProcessName())
@@ -3655,7 +3668,7 @@ CompilerIf 1=1
     FreeList(Processlist())
     ;Start chrome with debug port on
     ;TODO Not allowed to #PB_Program_Open
-    RunProgram("chrome.exe", "--remote-debugging-port=9222",GetCurrentDirectory())
+    RunProgram("chrome.exe", urls+" --remote-debugging-port=9222",GetCurrentDirectory())
     
   EndProcedure
   Procedure   IO_Get_Chrome_List()
@@ -4128,8 +4141,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 806
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+
+; CursorPosition = 334
+; FirstLine = 136
+; Folding = BAAAGQAAAAAAAAAAAAACAAAAAAABAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

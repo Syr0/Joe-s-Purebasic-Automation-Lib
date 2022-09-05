@@ -2218,6 +2218,17 @@ CompilerIf 1=1
   EndProcedure
   ;}
   
+  ;{ Regexes
+  NewMap IO_Regex_Samples()
+  IO_Regex_Samples("IP-Adress")="(\d{1,3}\.){3}\d{1,3}"
+  IO_Regex_Samples("Emailadress")="(?=[a-zA-Z0-9][a-zA-Z0-9@._%+-]{5,253}+$)[a-zA-Z0-9._%+-]{1,64}+@(?:(?=[a-zA-Z0-9-]{1,63}+\.)[a-zA-Z0-9]++(?:-[a-zA-Z0-9]++)*+\.){1,8}+[a-zA-Z]{2,63}+"
+  IO_Regex_Samples("VISA")="4[0-9]{3}( ?[0-9]{4}){2}(?:[0-9]{3})?"
+  IO_Regex_Samples("Mastercard")="(?:5[1-5][0-9]{2}|222[1-9]|22[3-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}"
+  IO_Regex_Samples("Base-64")="([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
+  IO_Regex_Samples("German Sentence")="[A-Z]?[a-zß-ü]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[a-zA-Z]?[a-zß-ü]*))+[\.|\?|\!]"
+  IO_Regex_Samples("Russian Sentence")="[А-Я]?[а-я]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[а-яА-Я]?[а-я]*))+[\.|\?|\!]"
+
+;}
   ;{ Math
   Procedure.s IO_Get_Math_Primefactors(List Factor.s())
     Primfaktoren.s = ""
@@ -2236,6 +2247,8 @@ CompilerIf 1=1
       EndIf
     Next
   EndProcedure
+  
+  
   ;}
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
@@ -4606,9 +4619,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2230
-; FirstLine = 41
-; Folding = AAAAAAAAAAAAAAgAAAAAAAAMAAAAAAAAAAAAAA-
+; CursorPosition = 2228
+; FirstLine = 42
+; Folding = AAAAAAAAAAAAAAgAAAAAAAAsAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

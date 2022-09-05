@@ -2218,8 +2218,367 @@ CompilerIf 1=1
   EndProcedure
   ;}
   
+  ;{ Converter
+  ;{ Constants
+  Enumeration
+    #IO_Convert_Decimal
+    #IO_Convert_Hexadecimal
+    #IO_Convert_BaudotNumbers
+    #IO_Convert_BaudotLetters
+    #IO_Convert_Ccir7Numbers
+    #IO_Convert_Ccir7Letters
+    #IO_Convert_Ascii7
+    #IO_Convert_Ascii8
+    #IO_Convert_Ascii8Kyrill
+    #IO_Convert_Bauer
+    #IO_Convert_Asian
+  EndEnumeration
+  Global NewMap IO_Converter_Bauercode.s()
+  IO_Converter_Bauercode("00001111") = "0"
+  IO_Converter_Bauercode("00010001") = "1"
+  IO_Converter_Bauercode("00100010") = "2"
+  IO_Converter_Bauercode("00111100") = "3"
+  IO_Converter_Bauercode("01000100") = "4"
+  IO_Converter_Bauercode("01011010") = "5"
+  IO_Converter_Bauercode("01101001") = "6"
+  IO_Converter_Bauercode("01110111") = "7"
+  IO_Converter_Bauercode("10001000") = "8"
+  IO_Converter_Bauercode("10010110") = "9"
+  IO_Converter_Bauercode("10100101") = "A"
+  IO_Converter_Bauercode("10111011") = "B"
+  IO_Converter_Bauercode("11000011") = " "
+  IO_Converter_Bauercode("11011101") = "D"
+  IO_Converter_Bauercode("11101110") = "E"
+  IO_Converter_Bauercode("11111111") = "F"
+  IO_Converter_Bauercode("01110100") = "?"
+  ;}
+
+  Procedure.s IO_Get_Converter_BinaryToChar(B.s,OutputFormat.i)
+  ReturnString.s = ""
+  Select OutputFormat
+    Case 0 ; 0
+      ReturnString = B.s
+    Case #IO_Convert_Decimal
+      ReturnString = Str(Val("%"+B.s))
+    Case #IO_Convert_Hexadecimal
+      ReturnString = Hex(Val("%"+B.s))
+    Case #IO_Convert_BaudotNumbers
+      Select B.S
+        Case "00000": ReturnString = ">"
+        Case "01000": ReturnString = "<"
+        Case "10000": ReturnString = "3"
+        Case "00001": ReturnString = "5" 
+        Case "11000": ReturnString = "-"
+        Case "10100": ReturnString = "‘"
+        Case "10001": ReturnString = "+"
+        Case "01100": ReturnString = "8"
+        Case "01010": ReturnString = "4"
+        Case "01001": ReturnString = ")"
+        Case "00110": ReturnString = ","
+        Case "00011": ReturnString = "9"
+        Case "11100": ReturnString = "7"
+        Case "11010": ReturnString = ""
+        Case "11001": ReturnString = "2"
+        Case "10101": ReturnString = "6"
+        Case "10011": ReturnString = "?"
+        Case "01110": ReturnString = ":"
+        Case "01101": ReturnString = "0"
+        Case "00111": ReturnString = "."
+        Case "11110": ReturnString = "("
+        Case "10111": ReturnString = "/"
+        Case "11101": ReturnString = "1"
+        Case "01111": ReturnString = "="
+        Default : ReturnString = ""
+      EndSelect
+    Case #IO_Convert_BaudotLetters
+      Select B.s
+        Case "10000": ReturnString = "E"
+        Case "01000": ReturnString = Chr(13)
+        Case "00100": ReturnString = " "
+        Case "00010": ReturnString = "<"
+        Case "00001": ReturnString = "T"
+        Case "11000": ReturnString = "A" 
+        Case "10100": ReturnString = "S"
+        Case "10010": ReturnString = "D"
+        Case "10001": ReturnString = "Z"
+        Case "01100": ReturnString = "I"
+        Case "01010": ReturnString = "R"
+        Case "01001": ReturnString = "L"
+        Case "00110": ReturnString = "N"
+        Case "00101": ReturnString = "H"
+        Case "00011": ReturnString = "O"
+        Case "11100": ReturnString = "U"
+        Case "11010": ReturnString = "J"
+        Case "11001": ReturnString = "W"
+        Case "10110": ReturnString = "F"
+        Case "10101": ReturnString = "Y"
+        Case "10011": ReturnString = "B"
+        Case "01110": ReturnString = "C"
+        Case "01101": ReturnString = "P"
+        Case "01011": ReturnString = "G"
+        Case "00111": ReturnString = "M"
+        Case "11110": ReturnString = "K"
+        Case "10111": ReturnString = "X"
+        Case "11011": ReturnString = "[Z]"  
+        Case "11101": ReturnString = "Q"
+        Case "01111": ReturnString = "V"
+        Case "11111": ReturnString = "[B]"
+        Default : ReturnString = ""
+      EndSelect
+   Case #IO_Convert_Ccir7Numbers
+     Select B.s
+       Case "0001110": ReturnString = "-"
+       Case "1011000": ReturnString = "?"
+       Case "0100011": ReturnString = ":"
+       Case "0011010": ReturnString = "$"
+       Case "1001010": ReturnString = "3"
+       Case "0010011": ReturnString = "!"
+       Case "0101001": ReturnString = "&"
+       Case "0110100": ReturnString = "#"
+       Case "0100110": ReturnString = "8"
+       Case "0001011": ReturnString = "J"
+       Case "1000011": ReturnString = "("
+       Case "0101100": ReturnString = ")"
+       Case "0110001": ReturnString = "."
+       Case "0110010": ReturnString = ","
+       Case "0111000": ReturnString = "9"
+       Case "0100101": ReturnString = "0"
+       Case "1000101": ReturnString = "1"
+       Case "0101010": ReturnString = "4"
+       Case "0010110": ReturnString = "'"
+       Case "1101000": ReturnString = "5"
+       Case "1000110": ReturnString = "7"
+       Case "1100001": ReturnString = "="
+       Case "0001101": ReturnString = "2"
+       Case "1010001": ReturnString = "/"
+       Case "0010101": ReturnString = "6"
+       Case "0011100": ReturnString = "+"
+       Case "1110000": ReturnString = Chr(9)
+       Case "1100100": ReturnString = Chr(13)
+       Case "1010010": ReturnString = "[B]"
+       Case "1001001": ReturnString = "[Z]"
+       Case "1100010": ReturnString = " "
+       Case "1010100": ReturnString = "[TAPE]"
+       Case "0101100": ReturnString = "[CS1]"
+       Case "1010100": ReturnString = "[CS2]"
+       Case "0110010": ReturnString = "[CS3]"
+       Case "0000111": ReturnString = "[IDLE_1]"
+       Case "0011001": ReturnString = "[IDLE_2]"
+       Case "1001100": ReturnString = "[RPT]"
+        Default : ReturnString = ""
+     EndSelect
+    Case #IO_Convert_Ccir7Letters
+      Select B.s
+       Case "0001110": ReturnString = "A"
+       Case "1011000": ReturnString = "B"
+       Case "0100011": ReturnString = "C"
+       Case "0011010": ReturnString = "D"
+       Case "1001010": ReturnString = "E"
+       Case "0010011": ReturnString = "F"
+       Case "0101001": ReturnString = "G"
+       Case "0110100": ReturnString = "H"
+       Case "0100110": ReturnString = "I"
+       Case "0001011": ReturnString = "J"
+       Case "1000011": ReturnString = "K"
+       Case "0101100": ReturnString = "L"
+       Case "0110001": ReturnString = "M"
+       Case "0110010": ReturnString = "N"
+       Case "0111000": ReturnString = "O"
+       Case "0100101": ReturnString = "P"
+       Case "1000101": ReturnString = "Q"
+       Case "0101010": ReturnString = "R"
+       Case "0010110": ReturnString = "S"
+       Case "1101000": ReturnString = "T"
+       Case "1000110": ReturnString = "U"
+       Case "1100001": ReturnString = "V"
+       Case "0001101": ReturnString = "W"
+       Case "1010001": ReturnString = "X"
+       Case "0010101": ReturnString = "Y"
+       Case "0011100": ReturnString = "Z"
+       Case "1110000": ReturnString = Chr(9)
+       Case "1100100": ReturnString = Chr(13)
+       Case "1010010": ReturnString = "[B]"
+       Case "1001001": ReturnString = "[Z]"
+       Case "1100010": ReturnString = Chr(20)
+       Case "1010100": ReturnString = "[TAPE]"
+       Case "0101100": ReturnString = "[CS1]"
+       Case "1010100": ReturnString = "[CS2]"
+       Case "0110010": ReturnString = "[CS3]"
+       Case "0000111": ReturnString = "[IDLE_1]"
+       Case "0011001": ReturnString = "[IDLE_2]"
+       Case "1001100": ReturnString = "[RPT]"
+        Default : ReturnString = ""
+      EndSelect
+    Case #IO_Convert_Ascii7
+      ReturnString = Chr(Val("%0"+B.s))
+    Case #IO_Convert_Ascii8
+      ReturnString = Chr(Val("%"+B.s))
+    Case #IO_Convert_Ascii8Kyrill
+      Select Val("%"+B)
+        Case 128:	Returnstring = "Ђ"
+        Case 129:	Returnstring = "Ѓ"
+        Case 130:	Returnstring = "‚"
+        Case 131:	Returnstring = "ѓ"
+        Case 132:	Returnstring = "„"
+        Case 133:	Returnstring = "…"
+        Case 134:	Returnstring = "†"
+        Case 135:	Returnstring = "‡"
+        Case 136:	Returnstring = "€"
+        Case 137:	Returnstring = "‰"
+        Case 138:	Returnstring = "Љ"
+        Case 139:	Returnstring = "‹"
+        Case 140:	Returnstring = "Њ"
+        Case 141:	Returnstring = "Ќ"
+        Case 142:	Returnstring = "Ћ"
+        Case 143:	Returnstring = "Џ"
+        Case 144:	Returnstring = "ђ"
+        Case 145:	Returnstring = "‘"
+        Case 146:	Returnstring = "’"
+        Case 147:	Returnstring = "“"
+        Case 148:	Returnstring = "”"
+        Case 149:	Returnstring = "•"
+        Case 150:	Returnstring = "–"
+        Case 151:	Returnstring = "—"
+        Case 153:	Returnstring = "™"
+        Case 154:	Returnstring = "љ"
+        Case 155:	Returnstring = "›"
+        Case 156:	Returnstring = "њ"
+        Case 157:	Returnstring = "ќ"
+        Case 158:	Returnstring = "ћ"
+        Case 159:	Returnstring = "џ"
+        Case 160:	Returnstring = " "
+        Case 161:	Returnstring = "Ў"
+        Case 162:	Returnstring = "ў"
+        Case 163:	Returnstring = "Ј"
+        Case 164:	Returnstring = "¤"
+        Case 165:	Returnstring = "Ґ"
+        Case 166:	Returnstring = "¦"
+        Case 167:	Returnstring = "§"
+        Case 168:	Returnstring = "Ё"
+        Case 169:	Returnstring = "©"
+        Case 170:	Returnstring = "Є"
+        Case 171:	Returnstring = "«"
+        Case 172:	Returnstring = "¬"
+        Case 173:	Returnstring = "[SHY]"
+        Case 174:	Returnstring = "®"
+        Case 175:	Returnstring = "Ї"
+        Case 176:	Returnstring = "°"
+        Case 177:	Returnstring = "±"
+        Case 178:	Returnstring = "І"
+        Case 179:	Returnstring = "і"
+        Case 180:	Returnstring = "ґ"
+        Case 181:	Returnstring = "µ"
+        Case 182:	Returnstring = "¶"
+        Case 183:	Returnstring = "·"
+        Case 184:	Returnstring = "ё"
+        Case 185:	Returnstring = "№"
+        Case 186:	Returnstring = "є"
+        Case 187:	Returnstring = "»"
+        Case 188:	Returnstring = "ј"
+        Case 189:	Returnstring = "Ѕ"
+        Case 190:	Returnstring = "ѕ"
+        Case 191:	Returnstring = "ї"
+        Case 192:	Returnstring = "А"
+        Case 193:	Returnstring = "Б"
+        Case 194:	Returnstring = "В"
+        Case 195:	Returnstring = "Г"
+        Case 196:	Returnstring = "Д"
+        Case 197:	Returnstring = "Е"
+        Case 198:	Returnstring = "Ж"
+        Case 199:	Returnstring = "З"
+        Case 200:	Returnstring = "И"
+        Case 201:	Returnstring = "Й"
+        Case 202:	Returnstring = "К"
+        Case 203:	Returnstring = "Л"
+        Case 204:	Returnstring = "М"
+        Case 205:	Returnstring = "Н"
+        Case 206:	Returnstring = "О"
+        Case 207:	Returnstring = "П"
+        Case 208:	Returnstring = "Р"
+        Case 209:	Returnstring = "С"
+        Case 210:	Returnstring = "Т"
+        Case 211:	Returnstring = "У"
+        Case 212:	Returnstring = "Ф"
+        Case 213:	Returnstring = "Х"
+        Case 214:	Returnstring = "Ц"
+        Case 215:	Returnstring = "Ч"
+        Case 216:	Returnstring = "Ш"
+        Case 217:	Returnstring = "Щ"
+        Case 218:	Returnstring = "Ъ"
+        Case 219:	Returnstring = "Ы"
+        Case 220:	Returnstring = "Ь"
+        Case 221:	Returnstring = "Э"
+        Case 222:	Returnstring = "Ю"
+        Case 223:	Returnstring = "Я"
+        Case 224:	Returnstring = "а"
+        Case 225:	Returnstring = "б"
+        Case 226:	Returnstring = "в"
+        Case 227:	Returnstring = "г"
+        Case 228:	Returnstring = "д"
+        Case 229:	Returnstring = "е"
+        Case 230:	Returnstring = "ж"
+        Case 231:	Returnstring = "з"
+        Case 232:	Returnstring = "и"
+        Case 233:	Returnstring = "й"
+        Case 234:	Returnstring = "к"
+        Case 235:	Returnstring = "л"
+        Case 236:	Returnstring = "м"
+        Case 237:	Returnstring = "н"
+        Case 238:	Returnstring = "о"
+        Case 239:	Returnstring = "п"
+        Case 240:	Returnstring = "р"
+        Case 241:	Returnstring = "с"
+        Case 242:	Returnstring = "т"
+        Case 243:	Returnstring = "у"
+        Case 244:	Returnstring = "ф"
+        Case 245:	Returnstring = "х"
+        Case 246:	Returnstring = "ц"
+        Case 247:	Returnstring = "ч"
+        Case 248:	Returnstring = "ш"
+        Case 249:	Returnstring = "щ"
+        Case 250:	Returnstring = "ъ"
+        Case 251:	Returnstring = "ы"
+        Case 252:	Returnstring = "ь"
+        Case 253:	Returnstring = "э"
+        Case 254:	Returnstring = "ю"
+        Case 255:	Returnstring = "я"
+        Default : ReturnString.s = Chr(Val("%"+B.s))
+          
+      EndSelect 
+      
+    Case #IO_Convert_Bauer
+      ReturnString = IO_Converter_Bauercode(B.s)
+          
+                      
+    Case #IO_Convert_Asian
+      For x = 1 To 4
+        SearchAsiaSymbol.s = SearchAsiaSymbol.s + Hex(Val("%"+Mid(B.s,x*4-3,4)))
+        If x = 1
+          ASCIISymbol.s = ASCIISymbol.s + Chr(Val("%"+Mid(B.s,1,8)))
+        EndIf   
+      Next
+      
+      Treffer = 0
+      Treffer = FindString(Asian$,SearchAsiaSymbol)
+      If Treffer > 0
+        ReturnString = Mid(Asian$,Treffer+5,1)
+        ReturnString2 = #True
+      Else
+        ReturnString = ASCIISymbol
+        ReturnString2 = #False
+      EndIf
+      
+    Default
+        ReturnString.s = "CODE NOT FOUND"
+  EndSelect
+  
+  ProcedureReturn ReturnString
+  
+EndProcedure
+  ;}
+
   ;{ Regexes
-  NewMap IO_Regex_Samples()
+  NewMap IO_Regex_Samples.s()
   IO_Regex_Samples("IP-Adress")="(\d{1,3}\.){3}\d{1,3}"
   IO_Regex_Samples("Emailadress")="(?=[a-zA-Z0-9][a-zA-Z0-9@._%+-]{5,253}+$)[a-zA-Z0-9._%+-]{1,64}+@(?:(?=[a-zA-Z0-9-]{1,63}+\.)[a-zA-Z0-9]++(?:-[a-zA-Z0-9]++)*+\.){1,8}+[a-zA-Z]{2,63}+"
   IO_Regex_Samples("VISA")="4[0-9]{3}( ?[0-9]{4}){2}(?:[0-9]{3})?"
@@ -2229,8 +2588,9 @@ CompilerIf 1=1
   IO_Regex_Samples("Russian Sentence")="[А-Я]?[а-я]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[а-яА-Я]?[а-я]*))+[\.|\?|\!]"
 
 ;}
+  
   ;{ Math
-  Procedure.s IO_Get_Math_Primefactors(List Factor.s())
+  Procedure.s IO_Get_Math_Primefactors(List Factor())
     Primfaktoren.s = ""
     For x = 2 To (zahl-1)
       If zahl % x = 0
@@ -2247,25 +2607,49 @@ CompilerIf 1=1
       EndIf
     Next
   EndProcedure
-  
+  Procedure IO_Check_Math_IsPrime(Number.i)
+    For x = 2 To Number -1
+      If Number %x = 0
+        ProcedureReturn #False
+      EndIf
+    Next
+    ProcedureReturn #True
+  EndProcedure
+Procedure IO_Get_Math_BiggestCommonDivisor(Number1, Number2)
+  ;Euklid
+    If Number1 > Number2
+      temp = Number2
+      Number2 = Number1
+      Number1 = temp
+    EndIf
+    
+    Repeat
+      temp = Number1
+      Number1 = Number2%Number1
+      Number2 = temp
+    Until Number1 = 0
+  ProcedureReturn Number2
+EndProcedure
+
   
   ;}
+
   ;{ Common Knowledge
-  Global NewMap IO_Get_MonthToNum();{
-  IO_Get_MonthToNum("Januar") = 01
-  IO_Get_MonthToNum("Februar") = 02
-  IO_Get_MonthToNum("März") = 03
-  IO_Get_MonthToNum("April") = 04
-  IO_Get_MonthToNum("Mai") = 05
-  IO_Get_MonthToNum("Juni") = 06
-  IO_Get_MonthToNum("Juli") = 07
-  IO_Get_MonthToNum("August") = 08
-  IO_Get_MonthToNum("September") = 09
-  IO_Get_MonthToNum("Oktober") = 10
-  IO_Get_MonthToNum("November") = 11
-  IO_Get_MonthToNum("Dezember") = 12;}
-                                    ;}
-  
+Global NewMap IO_Get_MonthToNum();{
+IO_Get_MonthToNum("Januar") = 01
+IO_Get_MonthToNum("Februar") = 02
+IO_Get_MonthToNum("März") = 03
+IO_Get_MonthToNum("April") = 04
+IO_Get_MonthToNum("Mai") = 05
+IO_Get_MonthToNum("Juni") = 06
+IO_Get_MonthToNum("Juli") = 07
+IO_Get_MonthToNum("August") = 08
+IO_Get_MonthToNum("September") = 09
+IO_Get_MonthToNum("Oktober") = 10
+IO_Get_MonthToNum("November") = 11
+IO_Get_MonthToNum("Dezember") = 12;}
+                                  ;}
+
 CompilerEndIf
 ;--------------------------;
 ;   Using external Tools   ;
@@ -4619,9 +5003,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2228
-; FirstLine = 42
-; Folding = AAAAAAAAAAAAAAgAAAAAAAAsAAAAAAAAAAAAAA+
+; CursorPosition = 2254
+; FirstLine = 38
+; Folding = AAAAAAAAAAAAAAgAAAAAAAAEgAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

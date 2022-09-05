@@ -123,7 +123,7 @@ CompilerIf 1=1
   ;}
   
   ;{ Keyboard And Mouse Input Detection
-  Procedure IO_Get_KeysDown(List Resultslist())
+  Procedure IO_Get_Keys_Down(List Resultslist())
     ClearList(Resultslist())
     For x = 0 To 255
       If GetAsyncKeyState_(x)
@@ -134,7 +134,7 @@ CompilerIf 1=1
     ;Example:
     ; NewList results()
     ; Repeat
-    ;   Whichkeysaredown(results())
+    ;   IO_Get_Keys_Down(results())
     ;   If ListSize(results()) > 0
     ;     ForEach results()
     ;       keysdown.s +" "+results()+" +"
@@ -147,18 +147,59 @@ CompilerIf 1=1
     ;   Delay(1)
     ; ForEver
   EndProcedure
-  Procedure IO_Get_MouseX()
+  Procedure IO_Get_Mouse_X()
     GetCursorPos_(Mouse.POINT)
     ProcedureReturn Mouse\x
   EndProcedure
-  Procedure IO_Get_MouseY()
+  Procedure IO_Get_Mouse_Y()
     GetCursorPos_(Mouse.POINT)
     ProcedureReturn Mouse\y
   EndProcedure
-  Procedure IO_Get_MousePosition(*Result.POINT)
+  Procedure IO_Get_Mouse_Position(*Result.POINT)
     GetCursorPos_(*Result)
   EndProcedure
-  ;}
+  
+  Procedure IO_Get_Mouse_ExampleHookCallback(nCode, wParam, lParam)
+  Select  wParam
+    Case #WM_LBUTTONDOWN
+      Debug GetDlgCtrlID_(wParam) ; Is 0
+    Case#WM_LBUTTONUP
+      Debug GetDlgCtrlID_(wParam) ; Is ID
+    Case #WM_MBUTTONDOWN
+      Debug GetDlgCtrlID_(wParam) ; Is 0
+    Case #WM_MBUTTONUP
+      Debug GetDlgCtrlID_(wParam) ; Is ID
+  EndSelect
+  ProcedureReturn CallNextHookEx_(0, nCode, wParam, lParam)
+EndProcedure
+  Procedure IO_Get_Mouse_StartHook(CallbackProcedure) ;TODO NEEDS AN OPEN WINDOW FOR EVENT HANDLEING!
+  hhkLLMouse = SetWindowsHookEx_(#WH_MOUSE_LL, CallbackProcedure, GetModuleHandle_(0), 0)
+EndProcedure
+  Procedure IO_Get_Mouse_StopHook()
+  UnhookWindowsHookEx_(hhkLLMouse)
+EndProcedure
+
+  Procedure IO_Get_Keyboard_ExampleHookCallback(nCode, wParam, lParam)
+    Select  wParam
+      Case #WM_KEYDOWN
+        Debug PeekA(lParam)
+    EndSelect
+    ProcedureReturn CallNextHookEx_(0, nCode, wParam, lParam)
+  EndProcedure
+  Procedure IO_Get_Keyboard_StartHook(CallbackProcedure) ;TODO NEEDS AN OPEN WINDOW FOR EVENT HANDLEING!
+    hhkLLMouse = SetWindowsHookEx_(#WH_KEYBOARD_LL, CallbackProcedure, GetModuleHandle_(0), 0)
+  EndProcedure
+  Procedure IO_Get_Keyboard_StopHook()
+  UnhookWindowsHookEx_(hhkLLMouse)
+EndProcedure
+
+;{ Example
+; OpenWindow(#PB_Any, 0, 0, 1, 1, "", #PB_Window_Invisible)
+; IO_Get_Mouse_StartHook(@IO_Get_Mouse_ExampleHookCallback())
+; IO_Get_Keyboard_StartHook(@IO_Get_Keyboard_ExampleHookCallback())
+; Repeat : Until WaitWindowEvent(1) = #PB_Event_CloseWindow
+;}
+;}
   
   ;{ InterProcessCommunication
   Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
@@ -826,6 +867,53 @@ CompilerIf 1=1
   EndProcedure
   ;}
   ;}
+  
+  ;{ DLL Injection
+  Procedure IO_Set_DLL_InjectW(dwProcessId, pszLibFile$) ;TODO Said to need admin rights
+    Protected hProcess, hThread, lzLibFileRemote, endSize, lsThreadRtn
+    
+    hProcess = OpenProcess_(#PROCESS_QUERY_INFORMATION | #PROCESS_CREATE_THREAD | #PROCESS_VM_OPERATION | #PROCESS_VM_WRITE, 0, dwProcessId)
+    
+    If hProcess = 0 : Goto ErrHandle : EndIf
+    endSize = 1 + StringByteLength(pszLibFile$)
+    
+    lzLibFileRemote = VirtualAllocEx_(hProcess, #Null, endSize, #MEM_COMMIT, #PAGE_READWRITE)
+    
+    If lzLibFileRemote = 0 : Goto ErrHandle : EndIf
+    
+    If (WriteProcessMemory_(hProcess, lzLibFileRemote, pszLibFile$, endSize, #Null) = 0) : Goto ErrHandle : EndIf
+    
+    OpenLibrary(0, "Kernel32.dll") : lsThreadRtn = GetFunction(0, "LoadLibraryW") : CloseLibrary(0)
+    
+    If lsThreadRtn = 0 : Goto ErrHandle : EndIf
+    
+    hThread = CreateRemoteThread_(hProcess, #Null, #Null, lsThreadRtn, lzLibFileRemote, #Null, #Null) ;Needs Admin rights?
+    
+    If (hThread = 0) : Goto ErrHandle : EndIf
+    
+    WaitForSingleObject_(hThread, #INFINITE)
+    
+    If lzLibFileRemote<>0
+      VirtualFreeEx_(hProcess, lzLibFileRemote, 0, #MEM_RELEASE)
+      MessageRequester("Inject Status", "Injection Suceeded", 0)
+    Else
+      VirtualFreeEx_(hProcess, lzLibFileRemote, 0, #MEM_RELEASE)
+      MessageRequester("Inject Status", "Injection Failed !!!", 0)
+    EndIf
+    End
+    
+    ErrHandle:
+    CloseHandle_(hThread)
+    CloseHandle_(hProcess)
+    
+    ;Example-DLL-Code
+    ;    ProcedureDLL AttachProcess(Instance)
+;     MessageRequester("aha","YEY")
+;    EndProcedure
+
+EndProcedure
+  ;}
+
 CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
@@ -978,6 +1066,7 @@ CompilerIf 1=1
   ; CreateNet(Neural_network(),Neural_params())
   
   ;}
+  
   ;{ Windowing
   Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
     
@@ -995,6 +1084,7 @@ CompilerIf 1=1
     SetLayeredWindowAttributes_(WindowID(PurebasicWindowHandle),Color,0,#LWA_COLORKEY)
   EndProcedure
   ;}
+  
   ;{ Visual Output
   ;{ Structures
   Structure Pixels
@@ -1476,7 +1566,7 @@ CompilerIf 1=1
             ForEach IgnoreButtonCollision()
               hwnd = IO_Get_PurebasicGadgetHwnd(IgnoreButtonCollision())
               IO_Get_WindowRectangle(hwnd,Rectangle.RECT)
-              IO_Get_MousePosition(Mouse.POINT)
+              IO_Get_Mouse_Position(Mouse.POINT)
               collission = IO_Check_PointInBoxCollision(Rectangle,Mouse)
               If collission
                 Break
@@ -4172,9 +4262,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2555
-; FirstLine = 211
-; Folding = AAAAAAAAAAACKAAAFAAABACyMQAgAA9PAA-
+; CursorPosition = 198
+; FirstLine = 28
+; Folding = BAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

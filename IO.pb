@@ -160,25 +160,25 @@ CompilerIf 1=1
   EndProcedure
   
   Procedure IO_Get_Mouse_ExampleHookCallback(nCode, wParam, lParam)
-  Select  wParam
-    Case #WM_LBUTTONDOWN
-      Debug GetDlgCtrlID_(wParam) ; Is 0
-    Case#WM_LBUTTONUP
-      Debug GetDlgCtrlID_(wParam) ; Is ID
-    Case #WM_MBUTTONDOWN
-      Debug GetDlgCtrlID_(wParam) ; Is 0
-    Case #WM_MBUTTONUP
-      Debug GetDlgCtrlID_(wParam) ; Is ID
-  EndSelect
-  ProcedureReturn CallNextHookEx_(0, nCode, wParam, lParam)
-EndProcedure
+    Select  wParam
+      Case #WM_LBUTTONDOWN
+        Debug GetDlgCtrlID_(wParam) ; Is 0
+      Case#WM_LBUTTONUP
+        Debug GetDlgCtrlID_(wParam) ; Is ID
+      Case #WM_MBUTTONDOWN
+        Debug GetDlgCtrlID_(wParam) ; Is 0
+      Case #WM_MBUTTONUP
+        Debug GetDlgCtrlID_(wParam) ; Is ID
+    EndSelect
+    ProcedureReturn CallNextHookEx_(0, nCode, wParam, lParam)
+  EndProcedure
   Procedure IO_Get_Mouse_StartHook(CallbackProcedure) ;TODO NEEDS AN OPEN WINDOW FOR EVENT HANDLEING!
-  hhkLLMouse = SetWindowsHookEx_(#WH_MOUSE_LL, CallbackProcedure, GetModuleHandle_(0), 0)
-EndProcedure
+    hhkLLMouse = SetWindowsHookEx_(#WH_MOUSE_LL, CallbackProcedure, GetModuleHandle_(0), 0)
+  EndProcedure
   Procedure IO_Get_Mouse_StopHook()
-  UnhookWindowsHookEx_(hhkLLMouse)
-EndProcedure
-
+    UnhookWindowsHookEx_(hhkLLMouse)
+  EndProcedure
+  
   Procedure IO_Get_Keyboard_ExampleHookCallback(nCode, wParam, lParam)
     Select  wParam
       Case #WM_KEYDOWN
@@ -190,16 +190,16 @@ EndProcedure
     hhkLLMouse = SetWindowsHookEx_(#WH_KEYBOARD_LL, CallbackProcedure, GetModuleHandle_(0), 0)
   EndProcedure
   Procedure IO_Get_Keyboard_StopHook()
-  UnhookWindowsHookEx_(hhkLLMouse)
-EndProcedure
-
-;{ Example
-; OpenWindow(#PB_Any, 0, 0, 1, 1, "", #PB_Window_Invisible)
-; IO_Get_Mouse_StartHook(@IO_Get_Mouse_ExampleHookCallback())
-; IO_Get_Keyboard_StartHook(@IO_Get_Keyboard_ExampleHookCallback())
-; Repeat : Until WaitWindowEvent(1) = #PB_Event_CloseWindow
-;}
-;}
+    UnhookWindowsHookEx_(hhkLLMouse)
+  EndProcedure
+  
+  ;{ Example
+  ; OpenWindow(#PB_Any, 0, 0, 1, 1, "", #PB_Window_Invisible)
+  ; IO_Get_Mouse_StartHook(@IO_Get_Mouse_ExampleHookCallback())
+  ; IO_Get_Keyboard_StartHook(@IO_Get_Keyboard_ExampleHookCallback())
+  ; Repeat : Until WaitWindowEvent(1) = #PB_Event_CloseWindow
+  ;}
+  ;}
   
   ;{ InterProcessCommunication
   Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
@@ -245,10 +245,15 @@ EndProcedure
   EndStructure
   Structure NestedList
     List Nested.ScanAllProcessesForClassAndTitleWithResultUIFields()
+  EndStructure
+  Structure IO_Process_Module
+    Filename.s
+    Modulname.s
+    BaseAddress.i
   EndStructure;}
   NewList Processlist.ProcessName()
-  Procedure.s IO_Get_PathOfProgramInEnviroment(Program.s)
-    Compiler = RunProgram("where", Program, "", #PB_Program_Open | #PB_Program_Read)
+  Procedure.s IO_Get_Program_PathInEnviroment(Program.s)
+    Compiler = RunProgram("where", Program, "", #PB_Program_Open | #PB_Program_Read |#PB_Program_Hide)
     Output$ = ""
     If Compiler
       While ProgramRunning(Compiler)
@@ -276,7 +281,7 @@ EndProcedure
   Procedure IO_Set_MinWindowNicely(hwnd)
     ShowWindow_(hwnd,#SW_MINIMIZE)
   EndProcedure
-    
+  
   Procedure IO_Set_KillProcess (pid)
     phandle = OpenProcess_ (#PROCESS_TERMINATE, #False, pid)
     If phandle <> #Null
@@ -331,6 +336,12 @@ EndProcedure
         ProcedureReturn Processlist()\PID
       EndIf
     Next
+    Debug "Failure to find "+filename+"."
+    Debug "Could only find:"
+    ForEach Processlist()
+      Debug Processlist()\Path+Chr(9)+Processlist()\Name
+    Next
+    Debug"-----"
   EndProcedure
   Procedure IO_Check_RunningExe(FileName.s)
     Protected snap.l , Proc32.PROCESSENTRY32 , dll_kernel32.l
@@ -361,6 +372,32 @@ EndProcedure
     EndIf
     ProcedureReturn #False
   EndProcedure
+  Procedure IO_Get_Process_AllModules(PID,List Result.IO_Process_Module()) ; PID=0 -> All processes
+    me32.MODULEENTRY32
+    me32\dwSize = SizeOf(MODULEENTRY32)
+    hSnapShot = CreateToolhelp32Snapshot_(#TH32CS_SNAPMODULE, PID) ;Change the zero for any processID.
+    If hSnapShot
+      If Module32First_(hSnapShot, me32) 
+        AddElement(Result())
+        Result()\Modulname = PeekS(@me32\szModule)
+        Result()\Filename = PeekS(@me32\szExePath)
+        Result()\BaseAddress = me32\modBaseAddr
+        Repeat 
+          result = Module32Next_(hSnapShot, me32)
+          If result
+            AddElement(Result())
+            Result()\Modulname = PeekS(@me32\szModule)
+            Result()\Filename = PeekS(@me32\szExePath)
+            Result()\BaseAddress = me32\modBaseAddr
+          EndIf 
+        Until result = #False 
+      EndIf
+      CloseHandle_(hSnapShot)
+    Else
+      Debug "Error CreateToolhelp32Snapshot_() failed!"
+    EndIf    
+  EndProcedure
+  
   Procedure IO_Get_AllHwndTitlesAndPid(List Result.GetAllHwndTitlesAndPID())
     Repeat
       sz = ListSize(Result())
@@ -372,19 +409,19 @@ EndProcedure
           hWnd = GetWindow_(hWnd, #GW_HWNDNEXT) 
         EndIf 
         If hWnd <> 0 
-;           If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_VISIBLE = #WS_VISIBLE
-;             If GetWindowLong_(hWnd, #GWL_EXSTYLE) & #WS_EX_TOOLWINDOW <> #WS_EX_TOOLWINDOW
-              ret.s = Space(256) 
-              Pid = 0
-              GetWindowThreadProcessId_(hwnd,@PID)
-              GetWindowText_(hWnd, ret, 256) 
-              AddElement(Result())
-              Result()\Title = ret
-              Result()\hwnd = hwnd
-              Result()\PID = Pid
-              If ret <> "" : Break : EndIf 
-;             EndIf 
-;           EndIf 
+          ;           If GetWindowLong_(hWnd, #GWL_STYLE) & #WS_VISIBLE = #WS_VISIBLE
+          ;             If GetWindowLong_(hWnd, #GWL_EXSTYLE) & #WS_EX_TOOLWINDOW <> #WS_EX_TOOLWINDOW
+          ret.s = Space(256) 
+          Pid = 0
+          GetWindowThreadProcessId_(hwnd,@PID)
+          GetWindowText_(hWnd, ret, 256) 
+          AddElement(Result())
+          Result()\Title = ret
+          Result()\hwnd = hwnd
+          Result()\PID = Pid
+          If ret <> "" : Break : EndIf 
+          ;             EndIf 
+          ;           EndIf 
         Else 
           Flag = 0 
         EndIf 
@@ -424,7 +461,7 @@ EndProcedure
   Procedure IO_Set_RunProgramReturnHwnd(file$,param$,paths.s,flags=#PB_Program_Open)
     
     If Len( GetPathPart(file$)) = 0
-      file$ = IO_Get_PathOfProgramInEnviroment(file$)
+      file$ = IO_Get_Program_PathInEnviroment(file$)
       If Len(file$) = 0
         Debug "IO_Set_RunProgramReturnHwnd: Please specify the full path to the file$ input!"
       EndIf
@@ -604,45 +641,47 @@ EndProcedure
     EndIf
     ProcedureReturn base
   EndProcedure
-  Procedure IO_Get_ModBaseAddrViaDLL(ProcessId.l, ModuleName.s)
-    ;Same as IO_Get_ModBaseAddr but makes calls manually via dll instead of API
-    kernel32=OpenLibrary(#PB_Any, "kernel32.dll")
-    ;Handle für externen Prozess 
-    Protected snapShot.i
-    ;Struktur für die Eigenschaften eines Moduls
-    Protected Me32.MODULEENTRY32
-    ;Wenn die Library "kernel32.dll" geladen wurden
-    If kernel32
-      ;Rufe die Funktion ToolHelp mit der ProcessID auf. Gibt den Handle auf die Module der ProcessID
-      snapShot=CallFunction(kernel32, "CreateToolhelp32Snapshot", #TH32CS_SNAPMODULE, ProcessId)
-      ;falls erfolgreich
-      If snapShot
-        ;Bereite eine Struktur des Typs Moduleentry32 vor um die einzelnen Module nacheinander da reinzuschreiben
-        ;Die Größe der Struktur wird in der Struktur festgehalten (Windows-eigen)
-        Me32\dwSize=SizeOf(MODULEENTRY32)
-        ;Belade die Struktur mit dem ersten Modul des Prozesses
-        If CallFunction(kernel32, "Module32First", snapShot, @Me32)
-          ;Werte den ModuleNamen aus
-          Repeat
-            ;Lese String aus dem Speicherbereich Me32\szModule bis zur Nullterminierung (-1) aks ASCCI
-            Protected moduleName$=PeekS(@Me32\szModule, -1, #PB_Ascii)
-            ;Ist der String der gesuchten ModuleNamen?
-            If moduleName$=ModuleName
-              ;Falls ja, abbruch und Baseaddresse aus der Struktur auslesen und returnen
-              CloseLibrary(kernel32)
-              ProcedureReturn Me32\modBaseAddr
-            EndIf
-            ;Sonst: Nächstes Modul bis es kein Nächstes mehr gibt.
-          Until Not CallFunction(kernel32, "Module32Next", snapShot, @Me32)
-        EndIf
-        ;Alle Module wurden durchsucht / es wurde das richtige gefunden. Jetzt den Funktionshandle freigaben (max 4048 pro Programm)
-        CloseHandle_(snapShot)
-      EndIf
-    EndIf
-    CloseLibrary(kernel32)
-    ;Wenn oben keine Baseadresse ermittelt werden konnte, gebe Null zurück
-    ProcedureReturn 0
-  EndProcedure
+  ;{ DEPRECATED   
+  ;   Procedure IO_Get_ModBaseAddrViaDLL(ProcessId.l, ModuleName.s)
+  ;     ;Same as IO_Get_ModBaseAddr but makes calls manually via dll instead of API
+  ;     kernel32=OpenLibrary(#PB_Any, "kernel32.dll")
+  ;     ;Handle für externen Prozess 
+  ;     Protected snapShot.i
+  ;     ;Struktur für die Eigenschaften eines Moduls
+  ;     Protected Me32.MODULEENTRY32
+  ;     ;Wenn die Library "kernel32.dll" geladen wurden
+  ;     If kernel32
+  ;       ;Rufe die Funktion ToolHelp mit der ProcessID auf. Gibt den Handle auf die Module der ProcessID
+  ;       snapShot=CallFunction(kernel32, "CreateToolhelp32Snapshot", #TH32CS_SNAPMODULE, ProcessId)
+  ;       ;falls erfolgreich
+  ;       If snapShot
+  ;         ;Bereite eine Struktur des Typs Moduleentry32 vor um die einzelnen Module nacheinander da reinzuschreiben
+  ;         ;Die Größe der Struktur wird in der Struktur festgehalten (Windows-eigen)
+  ;         Me32\dwSize=SizeOf(MODULEENTRY32)
+  ;         ;Belade die Struktur mit dem ersten Modul des Prozesses
+  ;         If CallFunction(kernel32, "Module32First", snapShot, @Me32)
+  ;           ;Werte den ModuleNamen aus
+  ;           Repeat
+  ;             ;Lese String aus dem Speicherbereich Me32\szModule bis zur Nullterminierung (-1) aks ASCCI
+  ;             Protected moduleName$=PeekS(@Me32\szModule, -1, #PB_Ascii)
+  ;             ;Ist der String der gesuchten ModuleNamen?
+  ;             If moduleName$=ModuleName
+  ;               ;Falls ja, abbruch und Baseaddresse aus der Struktur auslesen und returnen
+  ;               CloseLibrary(kernel32)
+  ;               ProcedureReturn Me32\modBaseAddr
+  ;             EndIf
+  ;             ;Sonst: Nächstes Modul bis es kein Nächstes mehr gibt.
+  ;           Until Not CallFunction(kernel32, "Module32Next", snapShot, @Me32)
+  ;         EndIf
+  ;         ;Alle Module wurden durchsucht / es wurde das richtige gefunden. Jetzt den Funktionshandle freigaben (max 4048 pro Programm)
+  ;         CloseHandle_(snapShot)
+  ;       EndIf
+  ;     EndIf
+  ;     CloseLibrary(kernel32)
+  ;     ;Wenn oben keine Baseadresse ermittelt werden konnte, gebe Null zurück
+  ;     ProcedureReturn 0
+  ;   EndProcedure 
+  ;}
   Procedure IO_Get_MemAdressByModandPointerListx64(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
     ;Wenn der Speicher einer DLL angehört statt dem eigentlichen Prozess
     ;ModuleName$ z.b. "mono.dll"
@@ -908,12 +947,303 @@ EndProcedure
     
     ;Example-DLL-Code
     ;    ProcedureDLL AttachProcess(Instance)
-;     MessageRequester("aha","YEY")
-;    EndProcedure
-
-EndProcedure
+    ;     MessageRequester("aha","YEY")
+    ;    EndProcedure
+    
+  EndProcedure
   ;}
-
+  
+  ;{ Rights&Permissions
+  
+  ;{ Structures
+  Structure TOKEN_ELEVATION
+    TokenIsElevated.l
+  EndStructure
+  Structure Rights
+    Name.s
+    PID.i
+    Admin.i
+  EndStructure
+  ;}
+  Procedure.l IO_Check_File_PremissionInternal(Filename.s, DesiredAccess.l)
+    ; Desired access rights constants
+    #MAXIMUM_ALLOWED = $2000000
+    #DELETE = $10000
+    #READ_CONTROL = $20000
+    #WRITE_DAC = $40000
+    #WRITE_OWNER = $80000
+    #SYNCHRONIZE = $100000
+    
+    #STANDARD_RIGHTS_READ     = #READ_CONTROL
+    #STANDARD_RIGHTS_WRITE    = #READ_CONTROL
+    #STANDARD_RIGHTS_EXECUTE  = #READ_CONTROL
+    #STANDARD_RIGHTS_REQUIRED = $F0000
+    
+    #FILE_READ_DATA            = $1             ; file & pipe
+    #FILE_LIST_DIRECTORY       = $1             ; directory
+    #FILE_ADD_FILE             = $2             ; directory
+    #FILE_WRITE_DATA           = $2             ; file & pipe
+    #FILE_CREATE_PIPE_INSTANCE = $4             ; named pipe
+    #FILE_ADD_SUBDIRECTORY     = $4             ; directory
+    #FILE_APPEND_DATA          = $4             ; file
+    #FILE_READ_EA              = $8             ; file & directory
+    #FILE_READ_PROPERTIES      = #FILE_READ_EA
+    #FILE_WRITE_EA             = $10            ; file & directory
+    #FILE_WRITE_PROPERTIES     = #FILE_WRITE_EA
+    #FILE_EXECUTE              = $20            ; file
+    #FILE_TRAVERSE             = $20            ; directory
+    #FILE_DELETE_CHILD         = $40            ; directory
+    #FILE_READ_ATTRIBUTES      = $80            ; all
+    #FILE_WRITE_ATTRIBUTES     = $100           ; all
+    
+    #FILE_GENERIC_READ = #STANDARD_RIGHTS_READ | #FILE_READ_DATA | #FILE_READ_ATTRIBUTES | #FILE_READ_EA | #SYNCHRONIZE
+    #FILE_GENERIC_WRITE = #STANDARD_RIGHTS_WRITE | #FILE_WRITE_DATA | #FILE_WRITE_ATTRIBUTES | #FILE_WRITE_EA | #FILE_APPEND_DATA | #SYNCHRONIZE
+    #FILE_GENERIC_EXECUTE = #STANDARD_RIGHTS_EXECUTE | #FILE_READ_ATTRIBUTES | #FILE_EXECUTE | #SYNCHRONIZE
+    #FILE_ALL_ACCESS = #STANDARD_RIGHTS_REQUIRED | #SYNCHRONIZE | $1FF
+    
+    
+    #GENERIC_READ = $80000000
+    #GENERIC_WRITE = $40000000
+    #GENERIC_EXECUTE = $20000000
+    #GENERIC_ALL = $10000000
+    
+    ; Types, constants And functions
+    ; To work With access rights
+    #OWNER_SECURITY_INFORMATION = $1
+    #GROUP_SECURITY_INFORMATION = $2
+    #DACL_SECURITY_INFORMATION  = $4
+    #TOKEN_QUERY                = 8
+    #SecurityImpersonation      = 3
+    #ANYSIZE_ARRAY              = 1
+    
+    ; Constant And function For detection of support
+    ; of access rights by file system
+    #FS_PERSISTENT_ACLS = $8
+    Protected.l r, SDSize, FSFlags, Volume.s, hToken.i
+    
+    ; Checking access rights support by file system
+    If Left(Filename, 2) = "\\"
+      ; Path in UNC format. Extracting share name from it
+      r = FindString(Filename, "\", 3)
+      If r = 0
+        Volume = Filename + "\"
+      Else
+        Volume = Left(Filename, r)
+      EndIf
+      
+    ElseIf Mid(Filename, 2, 2) = ":\"
+      ; Path begins With drive letter
+      Volume = Left(Filename, 3)
+      ;Else
+      ; If path Not set, we are leaving Volume blank.
+      ; It returns information about current drive.
+    EndIf
+    
+    ; Getting information about drive
+    GetVolumeInformation_(Volume, #Null, 0, 0, 0, @FSFlags, #Null, 0)
+    
+    If FSFlags And #FS_PERSISTENT_ACLS = 0
+      ; Rights Not supported.
+      ProcedureReturn -1
+    EndIf
+    
+    RequestedInformation = #OWNER_SECURITY_INFORMATION | #GROUP_SECURITY_INFORMATION | #DACL_SECURITY_INFORMATION
+    
+    ; Determination of buffer size
+    Retr = GetFileSecurity_(@Filename, RequestedInformation, 0, 0, @SDSize)
+    
+    If Not Retr
+      If GetLastError_() <> 122
+        ; Rights Not supported.
+        ProcedureReturn -1
+      EndIf
+    EndIf
+    
+    If SDSize = 0 : ProcedureReturn -1 : EndIf
+    
+    ; Buffer allocation
+    *SecDesc = AllocateMemory(SDSize)
+    If Not *SecDesc
+      ProcedureReturn -1
+    EndIf
+    
+    
+    ; Once more call of function
+    ; To obtain Security Descriptor
+    If GetFileSecurity_(@Filename, RequestedInformation, *SecDesc, SDSize, @SDSize) = 0
+      ; Error. We must Return no access rights.
+      ProcedureReturn 0
+    EndIf
+    
+    ; Adding Impersonation Token For thread
+    ImpersonateSelf_(#SecurityImpersonation)
+    
+    ; Opening of Token of current thread
+    OpenThreadToken_(GetCurrentThread_(), #TOKEN_QUERY, 0, @hToken)
+    
+    
+    If hToken <> 0
+      ; Filling GenericMask type
+      GenMap.GENERIC_MAPPING
+      GenMap\GenericRead    = #FILE_GENERIC_READ
+      GenMap\GenericWrite   = #FILE_GENERIC_WRITE
+      GenMap\GenericExecute = #FILE_GENERIC_EXECUTE
+      GenMap\GenericAll     = #FILE_ALL_ACCESS
+      
+      ; Conversion of generic rights to specific file access rights
+      ;... MapGenericMask DesiredAccess, GenMap
+      MapGenericMask_(@DesiredAccess, GenMap)
+      PrivSet.PRIVILEGE_SET
+      
+      ; Checking access
+      Size = SizeOf(PrivSet)
+      
+      AccessCheck_(*SecDesc, hToken, DesiredAccess, GenMap, PrivSet.PRIVILEGE_SET, @Size, @IO_Check_File_PremissionInternal, @r)
+      
+      CloseHandle_(hToken)
+    EndIf
+    
+    ; Deleting Impersonation Token
+    RevertToSelf_()
+    
+    ;Free memory allocation
+    FreeMemory(*SecDesc)
+    
+    ProcedureReturn IO_Check_File_PremissionInternal
+  EndProcedure
+  Procedure IO_Check_Rights_CheckAdminPrivileges(PID.l)
+    fRet.b = #False
+    hToken = #Null;
+    hProc = OpenProcess_(#PROCESS_QUERY_INFORMATION, 0, PID)
+    ReturnLength.l
+    
+    If hProc
+      If OpenProcessToken_( hProc, #TOKEN_QUERY, @hToken )      
+        Elevation.TOKEN_ELEVATION
+        ;       cbSize = SizeOf(TOKEN_ELEVATION)      
+        
+        If GetTokenInformation_( hToken, 20, @Elevation, SizeOf( Elevation ), @ReturnLength)
+          fRet = Elevation\TokenIsElevated
+        EndIf
+        
+      EndIf
+      If( hToken )
+        CloseHandle_( hToken )
+      EndIf
+      CloseHandle_( hProc )
+    Else 
+      Debug "Could not open Process: "+Str(pid)
+    EndIf
+    ProcedureReturn fRet
+  EndProcedure
+  Procedure IO_Check_Rights_ReadPermission(FileOrFolderName$)
+    If IO_Check_File_PremissionInternal(FileOrFolderName$, #FILE_GENERIC_READ) = #FILE_GENERIC_READ
+      ProcedureReturn 1
+    Else
+      ProcedureReturn 0
+    EndIf
+  EndProcedure
+  Procedure IO_Check_Rights_WritePermission(FileOrFolderName$)
+    If IO_Check_File_PremissionInternal(FileOrFolderName$, #FILE_GENERIC_WRITE) = #FILE_GENERIC_WRITE
+      ProcedureReturn 1
+    Else
+      ProcedureReturn 0
+    EndIf
+  EndProcedure
+  Procedure IO_Check_Rights_ExecutePermission(FileOrFolderName$)
+    If IO_Check_File_PremissionInternal(FileOrFolderName$, #FILE_GENERIC_EXECUTE) = #FILE_GENERIC_EXECUTE
+      ProcedureReturn 1
+    Else
+      ProcedureReturn 0
+    EndIf
+  EndProcedure
+  Procedure IO_Set_Rights_ProcessPriority(PID, PriorityClass)
+    hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, #False, PID)
+    SetPriorityClass_(hProcess, PriorityClass)
+    CloseHandle_(hProcess)
+    ProcedureReturn hProcess
+  EndProcedure
+  Procedure.s IO_Get_Rights_Priority(PID)
+    hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, #False, PID)
+    Result.s = ""
+    
+    Select GetPriorityClass_(hProcess)
+      Case #IDLE_PRIORITY_CLASS
+        Result = "Idle"
+      Case #BELOW_NORMAL_PRIORITY_CLASS
+        Result = "Below"
+      Case #NORMAL_PRIORITY_CLASS
+        Result = "Normal"
+      Case #ABOVE_NORMAL_PRIORITY_CLASS
+        Result = "Above"
+      Case #HIGH_PRIORITY_CLASS
+        Result = "High"
+      Case #REALTIME_PRIORITY_CLASS
+        Result = "Realtime"
+      Default
+        dwMessageId = GetLastError_()
+        *lpBuffer = AllocateMemory(255)
+        FormatMessage_(#FORMAT_MESSAGE_FROM_SYSTEM, #Null, dwMessageId, #Null, *lpBuffer, MemorySize(*lpBuffer), #Null)
+        Result = "Error: " + Str(dwMessageId) + " - " + PeekS(*lpBuffer)
+        FreeMemory(*lpBuffer)
+    EndSelect
+    CloseHandle_(hProcess)
+    ProcedureReturn Result
+  EndProcedure
+  
+  Procedure IO_Set_Rights_CurrentProcess()
+    Result.b = #False
+    If OpenProcessToken_(GetCurrentProcess_(), #TOKEN_ADJUST_PRIVILEGES | #TOKEN_QUERY, @TokenHandle)
+      lpLuid.LUID
+      If LookupPrivilegeValue_(#Null, #SE_DEBUG_NAME, @lpLuid)
+        NewState.TOKEN_PRIVILEGES
+        With NewState
+          \PrivilegeCount = 1
+          \Privileges[0]\Luid\LowPart = lpLuid\LowPart
+          \Privileges[0]\Luid\HighPart = lpLuid\HighPart
+          \Privileges[0]\Attributes = #SE_PRIVILEGE_ENABLED
+        EndWith
+        Result = AdjustTokenPrivileges_(TokenHandle, #False, @NewState, SizeOf(TOKEN_PRIVILEGES), @PreviousState.TOKEN_PRIVILEGES, @ReturnLength)
+      EndIf
+      CloseHandle_(TokenHandle)
+    EndIf
+    ProcedureReturn Result
+  EndProcedure
+  Procedure IO_Get_Rights_AllProcesses(List Process.Rights())
+    Protected Proc.PROCESSENTRY32
+    Proc\dwSize = SizeOf(PROCESSENTRY32)
+    Snapshot = CreateToolhelp32Snapshot_(#TH32CS_SNAPPROCESS, 0)
+    If Snapshot
+      ProcessFound = Process32First_(Snapshot, Proc)
+      While ProcessFound
+        hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, #False, Proc\th32ProcessID)
+        AddElement(Process())
+        Process()\Name = PeekS(@Proc\szExeFile, #PB_Any, #PB_Unicode)
+        Process()\PID = Proc\th32ProcessID
+        If SetPriorityClass_(hProcess, GetPriorityClass_(hProcess))
+          Process()\Admin = 1
+        Else
+          Process()\Admin = 0
+        EndIf
+        CloseHandle_(hProcess)
+        ProcessFound = Process32Next_(Snapshot, Proc)
+      Wend
+      CloseHandle_(Snapshot)
+    EndIf
+    ProcedureReturn result
+  EndProcedure
+  
+  ;{ Example
+  ; NewList Process.Rights()
+  ; IO_Set_Rights_CurrentProcess()
+  ; IO_Get_Rights_AllProcesses(Process())
+  ; ForEach Process()
+  ;   Debug Process()\Name
+  ;   Debug Process()\Admin
+  ; Next
+  ;}
+  ;}
+  
 CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
@@ -1740,6 +2070,7 @@ CompilerIf 1=1
     EndIf
     ProcedureReturn Result$
   EndProcedure
+  ;TODO add: http://forums.purebasic.com/english/viewtopic.php?p=525983
   ;}
   
   ;{ Util - File
@@ -1779,27 +2110,21 @@ CompilerIf 1=1
   EndProcedure
   Procedure FileToBitPlane(UL,Start,Zoom)
     Pixelsize = Round(zoom / 100,#PB_Round_Nearest)
-    
     fz = FileSize(filename$)
     If fz > Start
       totalbits = 200 * UL
       totalbytes = Round(totalbits / 8,#PB_Round_Up)
-      
       mem = AllocateMemory(totalbits)
-      
       f = OpenFile(#PB_Any,filename$)
       FileSeek(f,Start)
       ReadData(f,mem,totalbytes)
       CloseFile(f)
-      
       bin.s = ""
       For x = 1 To totalbytes
         Bin + RSet(Bin(PeekA(mem+x-1)),8,"0")
       Next
-      
       img = CreateImage(#PB_Any,UL*Pixelsize,200*Pixelsize)
-      StartDrawing(ImageOutput(img))
-      
+      StartDrawing(ImageOutput(img))  
       white = RGB(255,255,255)
       For x = 1 To UL
         For y = 0 To 199
@@ -1893,6 +2218,25 @@ CompilerIf 1=1
   EndProcedure
   ;}
   
+  ;{ Math
+  Procedure.s IO_Get_Math_Primefactors(List Factor.s())
+    Primfaktoren.s = ""
+    For x = 2 To (zahl-1)
+      If zahl % x = 0
+        ;neuen Primfaktor gefunden
+        AddElement(Factor())
+        Factor() = x
+        ;Alle Vielfachen eliminieren
+        While zahl % x = 0
+          Zahl = Zahl / x
+        Wend
+      EndIf
+      If zahl = 1
+        Break
+      EndIf
+    Next
+  EndProcedure
+  ;}
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
   IO_Get_MonthToNum("Januar") = 01
@@ -2640,10 +2984,10 @@ CompilerIf 1=1
     
     Procedure SendTextFrame(connection, message.s)
       
-       If Not connection
-;         Debug "SendTextFrame: no connection?"
-         ProcedureReturn 0
-       EndIf
+      If Not connection
+        ;         Debug "SendTextFrame: no connection?"
+        ProcedureReturn 0
+      EndIf
       
       ; Put String in Buffer
       MsgLength.l = StringByteLength(message.s, #PB_UTF8)
@@ -3778,7 +4122,7 @@ CompilerIf 1=1
   
   ;HTTP-Endpoints
   Procedure IO_Set_Chrome_Start(urls.s = "") ;TODO WARNING THIS CLOSES CHROME
-                                  ;kill all old instances of chrome
+                                             ;kill all old instances of chrome
     NewList Processlist.ProcessName()
     IO_Get_AllProcess(Processlist.ProcessName())
     ForEach Processlist()
@@ -4262,9 +4606,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 198
-; FirstLine = 28
-; Folding = BAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
+; CursorPosition = 2230
+; FirstLine = 41
+; Folding = AAAAAAAAAAAAAAgAAAAAAAAMAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

@@ -1921,18 +1921,26 @@ CompilerIf 1=1
       ProcedureReturn 0
     EndIf
   EndProcedure
-  Procedure.s IO_Get_ExtractRegexGroup(Regex.s,Text.s,List Result.s())
-    If CreateRegularExpression(0, Regex)
-      If ExamineRegularExpression(0, Text)
-        While NextRegularExpressionMatch(0)
-          AddElement(Result()) : Result() = RegularExpressionGroup(0, 1)
+  Procedure IO_Get_RegexExtractGroup(Regex.s,Text.s,List Result.s())
+    
+    IORegex =  CreateRegularExpression(#PB_Any, Regex)
+      If IORegex
+    If CountRegularExpressionGroups(IORegex) = 0
+      Debug "Did not find any groups in this regex!"
+      FreeRegularExpression(IORegex)
+      ProcedureReturn 0
+    EndIf
+    
+      If ExamineRegularExpression(IORegex, Text)
+        While NextRegularExpressionMatch(IORegex)
+          AddElement(Result()) : Result() = RegularExpressionGroup(IORegex, 1)
         Wend
       EndIf
-      FreeRegularExpression(0)
+      FreeRegularExpression(IORegex)
     EndIf
     ;  Example:
     ;   NewList test.s()
-    ;   IO_Get_ExtractRegexGroup("color=(red|green|blue)","stype=bold, color=blue, margin=50",test())
+    ;   IO_Get_RegexExtractGroup("color=(red|green|blue)","stype=bold, color=blue, margin=50",test())
     ;   ForEach Test()
     ;     Debug test()
     ;   Next
@@ -2586,7 +2594,7 @@ EndProcedure
   IO_Regex_Samples("Base-64")="([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
   IO_Regex_Samples("German Sentence")="[A-Z]?[a-zß-ü]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[a-zA-Z]?[a-zß-ü]*))+[\.|\?|\!]"
   IO_Regex_Samples("Russian Sentence")="[А-Я]?[а-я]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[а-яА-Я]?[а-я]*))+[\.|\?|\!]"
-
+  IO_Regex_Samples("Href") ="<a\s+(?:[^>]*?\s+)?href=(["+Chr(34)+"'])(.*?)\1"
 ;}
   
   ;{ Math
@@ -5003,8 +5011,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 4
-; Folding = AAAAAAAAAAAAAAgAAAAAAAAEgAAAAAAAAAAAAAA-
+; CursorPosition = 1935
+; FirstLine = 31
+; Folding = AAAAAAAAAAAAAAgAAAAwBAAkgBAAAAAAgAAAgAA-
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

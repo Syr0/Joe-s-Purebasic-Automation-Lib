@@ -2,7 +2,7 @@
 UsePNGImageDecoder()
 UseMD5Fingerprint() 
 ExamineDesktops()
-InitNetwork()
+; InitNetwork()
 ;Tips
 ;#1 Use Ctrl+F4 to collapse all foldings
 ;#2 Create a Project and add this file to the project files to use autocomplete
@@ -5002,9 +5002,8 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 5.73 LTS (Windows - x64)
-; CursorPosition = 2254
-; FirstLine = 38
+; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+; CursorPosition = 4
 ; Folding = AAAAAAAAAAAAAAgAAAAAAAAEgAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP

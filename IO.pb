@@ -205,7 +205,16 @@ CompilerIf 1=1
   Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
     PostMessage_(hWnd,wm_command,0,0)
   EndProcedure
-  ;}
+  Procedure WriteStdout(text.s)
+    CompilerIf #PB_Compiler_ExecutableFormat  = #PB_Compiler_Console
+      OpenConsole()
+      PrintN(text)
+      FlushFileBuffers_(GetStdHandle_(#STD_OUTPUT_HANDLE))
+    CompilerElse
+      Debug "Warning - Writing to stdout only works fine on Console-Applications.(Otherwise a console needs to be/will be opened)"
+    CompilerEndIf
+  EndProcedure
+;}
   
   ;{ Process Control <- Warning on slowdown!
   ;{ Structures
@@ -5011,9 +5020,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 1935
-; FirstLine = 31
-; Folding = AAAAAAAAAAAAAAgAAAAwBAAkgBAAAAAAgAAAgAA-
+; CursorPosition = 89
+; FirstLine = 18
+; Folding = BAAAANAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; EnablePurifier

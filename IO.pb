@@ -1480,6 +1480,16 @@ CompilerIf 1=1
     SetWindowLong_(WindowID(PurebasicWindowHandle), #GWL_EXSTYLE, #WS_EX_LAYERED | #WS_EX_TOPMOST)
     SetLayeredWindowAttributes_(WindowID(PurebasicWindowHandle),Color,0,#LWA_COLORKEY)
   EndProcedure
+  Procedure IO_Set_Icon(hwnd,TitleIconPath.s="",TaskbarIconPath.s="")
+    If Len(TitleIconPath) > 0
+      Icon1Bytes = LoadImage(0,TitleIconPath) 
+      SendMessage_(hwnd,#WM_SETICON,0,Icon1Bytes) 
+    EndIf
+    If Len(TaskbarIconPath) > 0
+      Icon2Bytes = LoadImage(1,TaskbarIconPath) 
+      SendMessage_(hwnd,#WM_SETICON,1,Icon2Bytes) 
+    EndIf
+  EndProcedure
   ;}
   
   ;{ Visual Output
@@ -5080,9 +5090,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 26
-; FirstLine = 28
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAA5
+; CursorPosition = 29
+; FirstLine = 18
+; Folding = AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAw
 ; EnableThread
 ; EnableXP
 ; DPIAware

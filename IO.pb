@@ -4857,10 +4857,13 @@ CompilerIf 1=1
     IO_Check_Chrome_Runtimeevaluate(TabID,"const data = new XMLSerializer().serializeToString(document); const a = document.createElement('a');const blob = new Blob([JSON.stringify(data)]);a.href = URL.createObjectURL(blob);a.download = '"+Filename$+"';a.click();")
     Delay(600);min 450
     
-    
+    t =ElapsedMilliseconds()
     Repeat
       Delay(10)
       f = ReadFile(#PB_Any,Filepath)
+      If (ElapsedMilliseconds()-t) > 10000
+        ProcedureReturn ""
+      EndIf
     Until f
     content$ = ReadString(f,#PB_UTF8,FileSize(Filepath))
     
@@ -4868,7 +4871,6 @@ CompilerIf 1=1
     DeleteFile(Filepath)
     ProcedureReturn content$
   EndProcedure
-  
   ;Javascript for Chrome
   Procedure IO_Set_Chrome_ClickOnButtonByID(TabID.s,ButtonID.s)
     IO_Check_Chrome_Runtimeevaluate(TabID,"document.getElementById('"+ButtonID+"').click();")
@@ -5020,7 +5022,6 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 20
 ; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP

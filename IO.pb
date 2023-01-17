@@ -2,17 +2,26 @@
 UsePNGImageDecoder()
 UseMD5Fingerprint() 
 ExamineDesktops()
-; InitNetwork()
+
 ;Tips
 ;#1 Use Ctrl+F4 to collapse all foldings
 ;#2 Create a Project and add this file to the project files to use autocomplete
 ;#3 enable the Compilerifs depending on what you need
 
-;Contact:
+;Contact
 ;Debug "joachims"+Chr(Asc("e"))+"ster@web.de"
+
+;Credits
 ;Plenty of Authors on purebasic forum
-;note: Yes - this is simular to the codearchive
+
+;Idea
+;Yes - this is simular To the codearchive
 ;but I only care about external (mostly API)-stuff
+
+;Note
+;Many Functions require structures as input Parameters - They are already defined, yo sou can use them.
+;Unfortunately, a structure needs to be define before calling a Procedure - so alot of memory is used
+;Even if all those functions are not used. Be smart and turn off unused features before you compile.
 
 ;There are three different Prefixes:
 ;IO_Set_xxx()
@@ -5071,9 +5080,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 78
-; FirstLine = 2
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
+; CursorPosition = 19
+; FirstLine = 9
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAEAAAAA5
 ; EnableThread
 ; EnableXP
 ; DPIAware

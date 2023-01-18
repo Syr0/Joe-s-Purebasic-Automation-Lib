@@ -2665,13 +2665,29 @@ CompilerIf 1
   ;{ Regexes
   NewMap IO_Regex_Samples.s()
   IO_Regex_Samples("IP-Adress")="(\d{1,3}\.){3}\d{1,3}"
+  ;Evil-Regex:  (a+)+
+;               ([a-zA-Z]+)*
+;               (a|aa)+
+;               (a|a?)+
+;               (.*a){x} For x > 10
+  ;Hex-Values:  /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i
+  ;US-Phone:    [\\(]\d{3}[\\)]\s\d{3}-\d{4}$
+  ;Password:    (?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s)(?=.*[!@#$*])
+  ;Username:    /^[a-zA-Z0-9_-]{3,16}$/
+  ;URL:         /https?:\/\/(www\.)?[-a-zA-Z0–9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0–9@:%_\+.~#()?&//=]*)/
+  ;Better?      [a-zA-Z0–9+_.-]+@[a-zA-Z0–9.-]+$
+  ;             /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,63})$/
+  ;Date:        /^([1-2][0-9]|3[0-1]|0?[1-9])([-\.\/ ])(1[0-2]|0?[1-9])(\2)([\d]{4}|[\d]{2})$/
   IO_Regex_Samples("Emailadress")="(?=[a-zA-Z0-9][a-zA-Z0-9@._%+-]{5,253}+$)[a-zA-Z0-9._%+-]{1,64}+@(?:(?=[a-zA-Z0-9-]{1,63}+\.)[a-zA-Z0-9]++(?:-[a-zA-Z0-9]++)*+\.){1,8}+[a-zA-Z]{2,63}+"
   IO_Regex_Samples("VISA")="4[0-9]{3}( ?[0-9]{4}){2}(?:[0-9]{3})?"
   IO_Regex_Samples("Mastercard")="(?:5[1-5][0-9]{2}|222[1-9]|22[3-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}"
+  ;Discovercard  ^6(?:011|5[0–9]{2})[0–9]{12}$
+  ;
   IO_Regex_Samples("Base-64")="([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
   IO_Regex_Samples("German Sentence")="[A-Z]?[a-zß-ü]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[a-zA-Z]?[a-zß-ü]*))+[\.|\?|\!]"
   IO_Regex_Samples("Russian Sentence")="[А-Я]?[а-я]+([,|:|;|&|\(|\)|\{|\}|\[|\]]?\s(\d+|[а-яА-Я]?[а-я]*))+[\.|\?|\!]"
   IO_Regex_Samples("Href") ="<a\s+(?:[^>]*?\s+)?href=(["+Chr(34)+"'])(.*?)\1"
+  ;HTML-Tag    /^<([a-z\d]+)([^<]+)*(?:>(.*)<\/\1>|\s*\/>)$/
   ;}
   
   ;{ Math
@@ -5090,9 +5106,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 148
-; FirstLine = 4
-; Folding = AAAgAAAAAAAAAAAAAAAAAAAAAgAAAAAAAIQAAAAw
+; CursorPosition = 2670
+; FirstLine = 54
+; Folding = AAAAAAAAAAAAAAAEAAAAAAAAIAAAAAAAAAAAAAAw
 ; EnableThread
 ; EnableXP
 ; DPIAware

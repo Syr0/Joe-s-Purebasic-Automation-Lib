@@ -31,7 +31,7 @@ ExamineDesktops()
 ;--------------------------;
 ;     API & Windows-Libs   ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1
   ;{ Mouse Input Simulation
   Procedure IO_Set_MousePos(x,y)
     SetCursorPos_(x,y)
@@ -1315,7 +1315,7 @@ CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1
   ;{ AI
   
   Structure DataSet
@@ -1973,7 +1973,7 @@ CompilerIf 1=1
             ForEach IgnoreButtonCollision()
               hwnd = IO_Get_PurebasicGadgetHwnd(IgnoreButtonCollision())
               IO_Get_WindowRectangle(hwnd,Rectangle.RECT)
-              IO_Get_Mouse_Position(Mouse.POINT)
+              GetCursorPos_(Mouse.POINT)
               collission = IO_Check_PointInBoxCollision(Rectangle,Mouse)
               If collission
                 Break
@@ -2739,7 +2739,7 @@ CompilerEndIf
 ;--------------------------;
 ;   Using external Tools   ;
 ;--------------------------;
-CompilerIf 1=1
+CompilerIf 1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
     Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
@@ -5090,9 +5090,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 29
-; FirstLine = 18
-; Folding = AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAw
+; CursorPosition = 148
+; FirstLine = 4
+; Folding = AAAgAAAAAAAAAAAAAAAAAAAAAgAAAAAAAIQAAAAw
 ; EnableThread
 ; EnableXP
 ; DPIAware

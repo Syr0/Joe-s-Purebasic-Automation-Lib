@@ -5110,9 +5110,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 2159
-; FirstLine = 35
-; Folding = AAAAAAAAAAAAAAAEAAAAAAUAAAAAAAAAAAAAAAAg
+; CursorPosition = 21
+; FirstLine = 8
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg
 ; EnableThread
 ; EnableXP
 ; DPIAware

@@ -48,7 +48,7 @@ CompilerIf 1
     TotalDistance.POINT\x = Abs(CurrentPosition\x-x)
     TotalDistance\y = Abs(CurrentPosition\y-y)
     Repeat
-            
+      
       ProgressX.f = Abs(CurrentPosition\x-StartPosition\x) / TotalDistance\x
       ProgressY.f = Abs(CurrentPosition\y-StartPosition\y) / TotalDistance\y
       ProgressT.f = (ElapsedMilliseconds() - ms)/Duration
@@ -260,78 +260,86 @@ CompilerIf 1
   ;}
   
   ;{ Registry
-  Procedure RegisterOwnProtocolInRegistry(Protocolname.s,Command.s)
-  topKey.l = #HKEY_CURRENT_USER
-  subkey.s = "SOFTWARE\Classes\"+Protocolname
-  URL.s = "URL:"+Protocolname
-  handle.l = 0
-  result.l = 0
-  
-  Command = Chr(34)+Trim(Command) +Chr(34)+ " "+Chr(34)+"%1"+Chr(34)
-  name.s = "URL Protocol"
-  buffer.s = ""
-  buffer_l.l = Len(buffer)*2
-  
-  If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
-    ; Write the Default key
-    RegSetValueEx_(handle,0,0,#REG_SZ,URL,Len(URL)*2)
-    ;Write the fist subkey
-    If RegOpenKeyEx_(topKey,@subkey,0,#KEY_ALL_ACCESS,@handle)=0
-      RegSetValueEx_(handle,@name,0,#REG_SZ,buffer,buffer_l)
-      subkey+"\shell"
-      If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
-        subkey+"\open"
+  Procedure.l RegDeleteTree(hTopKey.i, sSubKey.s)
+    Protected hKey.i, RetCode.l, dwSize.l, sBuf.s
+    
+    RetCode = RegOpenKeyEx_(hTopKey, sSubKey, 0, #KEY_ENUMERATE_SUB_KEYS, @hKey)
+    If RetCode = #ERROR_SUCCESS
+      sBuf = Space(#MAX_PATH)
+      Repeat
+        dwSize = #MAX_PATH
+        RetCode = RegEnumKeyEx_(hKey, 0, sBuf, @dwSize, 0, 0, 0, 0)
+        If RetCode = #ERROR_SUCCESS : RegDeleteTree(hKey, sBuf) : EndIf
+      Until RetCode
+      RegCloseKey_(hKey)
+      RetCode = RegDeleteKey_(hTopKey, sSubKey)
+    EndIf
+    ProcedureReturn RetCode
+  EndProcedure
+  Procedure IO_Set_RegisterOwnProtocolInRegistry(Protocolname.s,Command.s)
+    topKey.l = #HKEY_CURRENT_USER
+    subkey.s = "SOFTWARE\Classes\"+Protocolname
+    URL.s = "URL:"+Protocolname
+    handle.l = 0
+    result.l = 0
+    
+    Command = Chr(34)+Trim(Command) +Chr(34)+ " "+Chr(34)+"%1"+Chr(34)
+    name.s = "URL Protocol"
+    buffer.s = ""
+    buffer_l.l = Len(buffer)*2
+    
+    If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
+      ; Write the Default key
+      RegSetValueEx_(handle,0,0,#REG_SZ,URL,Len(URL)*2)
+      ;Write the fist subkey
+      If RegOpenKeyEx_(topKey,@subkey,0,#KEY_ALL_ACCESS,@handle)=0
+        RegSetValueEx_(handle,@name,0,#REG_SZ,buffer,buffer_l)
+        subkey+"\shell"
         If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
-          subkey+"\command"
+          subkey+"\open"
           If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
-            RegSetValueEx_(handle,0,0,#REG_SZ,@Command,Len(Command)*2)
-            RegCloseKey_(handle)
-            ProcedureReturn #True
+            subkey+"\command"
+            If RegCreateKeyEx_(topKey,@subkey,0,0,#REG_OPTION_NON_VOLATILE,#KEY_ALL_ACCESS,0,@handle,@result)=0
+              RegSetValueEx_(handle,0,0,#REG_SZ,@Command,Len(Command)*2)
+              RegCloseKey_(handle)
+              ProcedureReturn #True
+            EndIf
           EndIf
         EndIf
+        RegCloseKey_(handle)
       EndIf
-      RegCloseKey_(handle)
     EndIf
-  EndIf
-  ProcedureReturn #False
-EndProcedure
-  Procedure.l RegDeleteTree(hTopKey.i, sSubKey.s)
-  Protected hKey.i, RetCode.l, dwSize.l, sBuf.s
-
-  RetCode = RegOpenKeyEx_(hTopKey, sSubKey, 0, #KEY_ENUMERATE_SUB_KEYS, @hKey)
-  If RetCode = #ERROR_SUCCESS
-    sBuf = Space(#MAX_PATH)
-    Repeat
-      dwSize = #MAX_PATH
-      RetCode = RegEnumKeyEx_(hKey, 0, sBuf, @dwSize, 0, 0, 0, 0)
-      If RetCode = #ERROR_SUCCESS : RegDeleteTree(hKey, sBuf) : EndIf
-    Until RetCode
-    RegCloseKey_(hKey)
-    RetCode = RegDeleteKey_(hTopKey, sSubKey)
-  EndIf
-  ProcedureReturn RetCode
-EndProcedure
-  Procedure UnRegisterOwnProtocolInRegistry(Protocolname.s)
-  topKey.l = #HKEY_CURRENT_USER
-  subkey.s = "SOFTWARE\Classes\"+Protocolname
-  If RegDeleteTree(topKey,subkey)=0
-    ProcedureReturn #True
-  Else
     ProcedureReturn #False
-  EndIf
-EndProcedure
-
-  ; Debug RegisterOwnProtocolInRegistry("Obsidian2","C:\Users\User\AppData\Local\Obsidian\Obsidian.exe")
-  ; Debug unRegisterOwnProtocolInRegistry("Obsidian2")
-
+  EndProcedure
+  Procedure IO_Set_UnRegisterOwnProtocolInRegistry(Protocolname.s)
+    topKey.l = #HKEY_CURRENT_USER
+    subkey.s = "SOFTWARE\Classes\"+Protocolname
+    If RegDeleteTree(topKey,subkey)=0
+      ProcedureReturn #True
+    Else
+      ProcedureReturn #False
+    EndIf
+  EndProcedure
+  
+  ; Debug IO_Set_RegisterOwnProtocolInRegistry("Obsidian2","C:\Users\User\AppData\Local\Obsidian\Obsidian.exe")
+  ; Debug IO_Set_unRegisterOwnProtocolInRegistry("Obsidian2")
+  
   ;}
+  
   ;{ InterProcessCommunication
   Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
     PostMessage_(hWnd,wm_command,0,0)
   EndProcedure
   Procedure WriteStdout(text.s)
-  ;}
-
+    CompilerIf #PB_Compiler_ExecutableFormat  = #PB_Compiler_Console
+      OpenConsole()
+      PrintN(text)
+      FlushFileBuffers_(GetStdHandle_(#STD_OUTPUT_HANDLE))
+    CompilerElse
+      Debug "Warning - Writing to stdout only works fine on Console-Applications.(Otherwise a console needs to be/will be opened)"
+    CompilerEndIf
+  EndProcedure
+  
   ;{ Process Control <- Warning on slowdown!
   ;{ Structures
   #SystemProcessInformation = $0005
@@ -1368,7 +1376,7 @@ EndProcedure
   ; Next
   ;}
   ;}
-  
+  ;}
 CompilerEndIf
 ;--------------------------;
 ;         Purebasic        ;
@@ -2216,7 +2224,7 @@ CompilerIf 1
   Procedure IO_Get_Chrome_Time2Datetime(Chrometime)
     ProcedureReturn ChromeTime/10000000+328281926
   EndProcedure
-
+  
   ;TODO add: http://forums.purebasic.com/english/viewtopic.php?p=525983
   ;}
   
@@ -2728,10 +2736,10 @@ CompilerIf 1
   NewMap IO_Regex_Samples.s()
   IO_Regex_Samples("IP-Adress")="(\d{1,3}\.){3}\d{1,3}"
   ;Evil-Regex:  (a+)+
-;               ([a-zA-Z]+)*
-;               (a|aa)+
-;               (a|a?)+
-;               (.*a){x} For x > 10
+  ;               ([a-zA-Z]+)*
+  ;               (a|aa)+
+  ;               (a|a?)+
+  ;               (.*a){x} For x > 10
   ;Hex-Values:  /^#?([a-f0-9]{6}|[a-f0-9]{3})$/i
   ;US-Phone:    [\\(]\d{3}[\\)]\s\d{3}-\d{4}$
   ;Password:    (?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s)(?=.*[!@#$*])
@@ -5168,9 +5176,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 325
-; FirstLine = 34
-; Folding = BAAAAiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 32
+; FirstLine = 7
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
 ; EnableThread
 ; EnableXP
 ; DPIAware

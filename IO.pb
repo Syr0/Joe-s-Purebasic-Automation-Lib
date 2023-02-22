@@ -2407,7 +2407,10 @@ CompilerIf 1
   IO_Converter_Bauercode("11111111") = "F"
   IO_Converter_Bauercode("01110100") = "?"
   ;}
-  
+  Structure IO_HuffmanCountElement
+    Count.i
+    Char.s
+  EndStructure 
   Procedure.s IO_Get_Converter_BinaryToChar(B.s,OutputFormat.i)
     ReturnString.s = ""
     Select OutputFormat
@@ -2730,6 +2733,80 @@ CompilerIf 1
     ProcedureReturn ReturnString
     
   EndProcedure
+  
+  Procedure IO_MemoryStringCount(*InputMemory,Length,List Huffman.IO_HuffmanCountElement(),Encoding=#PB_UTF8)
+    If Encoding = #PB_UTF8
+      Stepsize = 2
+    Else
+      Stepsize = 1
+    EndIf
+    i = 0
+    NewMap Counter()
+    Repeat
+      c = PeekA(*InputMemory+i)
+      Counter(Chr(c)) +1
+      i+Stepsize
+    Until i >= Length
+    
+    ForEach Counter()
+      AddElement(Huffman())
+      Huffman()\Char = MapKey(Counter())
+      Huffman()\Count = Counter()
+    Next
+    FreeMap(Counter())
+    
+  EndProcedure
+  Procedure IO_FileStringCount(FilePath.s,List Huffman.IO_HuffmanCountElement())
+    f = ReadFile(#PB_Any,FilePath)
+    If Not f
+      ProcedureReturn
+    EndIf
+    NewMap Statistics()
+    While Eof(f) = 0
+      line$ = ReadString(f)
+      
+      For x = 1 To Len(line$)
+        Statistics(Mid(line$,x,1)) +1
+      Next
+    Wend
+    CloseFile(f)
+    ForEach Statistics()
+      AddElement(Huffman()) : Huffman()\Char = MapKey(Statistics()) : Huffman()\Count = Statistics()
+    Next
+    
+  EndProcedure
+  Procedure IO_Set_CreateHuffman(List Huffman.IO_HuffmanCountElement(),Map ReturnTree.s())
+    
+    While ListSize(Huffman()) > 1
+      SortStructuredList(Huffman(),#PB_Sort_Ascending,OffsetOf(IO_HuffmanCountElement\Count),#PB_Integer)
+      FirstElement(Huffman())
+      count = Huffman()\Count
+      code.s = Huffman()\Char
+      DeleteElement(Huffman()):FirstElement(Huffman())
+      For x = 1 To Len(code)
+        c$ = Mid(code,x,1)
+        ReturnTree(c$) = "0"+ReturnTree(c$)
+      Next
+      For x = 1 To Len(Huffman()\Char)
+        ReturnTree(Mid(Huffman()\Char,x,1)) = "1"+ReturnTree(Mid(Huffman()\Char,x,1))
+      Next
+      Huffman()\Count + count
+      Huffman()\Char + code
+    Wend
+    
+    
+  EndProcedure
+  
+  ; NewList Huffman.IO_HuffmanCountElement()
+  ; NewMap IO_Huffmantree.s()
+  ; Test.s = "asdfg"
+  ; IO_MemoryStringCount(@test,Len(test)*2,Huffman())
+  ; IO_FileStringCount("",Huffman())
+  ; IO_Set_CreateHuffman(Huffman(),IO_Huffmantree())
+  
+  ;  ForEach IO_Huffmantree()
+  ;     Debug MapKey(IO_Huffmantree()) +" -> "+IO_Huffmantree()
+  ;  Next
   ;}
   
   ;{ Regexes
@@ -5176,9 +5253,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 32
-; FirstLine = 7
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
+; CursorPosition = 1380
+; FirstLine = 23
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
 ; EnableThread
 ; EnableXP
 ; DPIAware

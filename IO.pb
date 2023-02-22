@@ -2347,7 +2347,7 @@ CompilerIf 1
     
     ProcedureReturn Counter
   EndProcedure
-  Procedure IO_Check_ReadICMPPaket(*Data,Length)
+  Procedure IO_Check_ReadHashAtEndOfICMP(*Data,Length)
     If Length <= 16+32
       ProcedureReturn 0
     EndIf
@@ -4214,7 +4214,7 @@ CompilerIf 1
     PrintN("Protocol: "+IO_Get_EthernetServiceIDtoName(*Packet\IP_Protocol))
     Select *Packet\IP_Protocol
       Case 1 :
-        intresting = IO_Check_ReadICMPPaket(*Packet\DataBuffer,*Packet\DataBufferLength) ; ICMP
+        intresting = IO_Check_ReadHashAtEndOfICMP(*Packet\DataBuffer,*Packet\DataBufferLength) ; ICMP
       Case 6                                                                             ;TCP
       Case 17                                                                            ; UDP
     EndSelect
@@ -5253,7 +5253,7 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 1380
+; CursorPosition = 4212
 ; FirstLine = 23
 ; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
 ; EnableThread

@@ -2882,6 +2882,32 @@ CompilerIf 1
   
   ;}
   
+  ;{ Windows OS Information
+  Procedure.s IO_Get_CurrentSecurityEvents(n=5)
+  skip = 6
+  Compiler = RunProgram("powershell", "Get-WinEvent -LogName 'Security' -MaxEvents "+Str(n), "", #PB_Program_Open | #PB_Program_Read)
+  Output$ = ""
+  If Compiler
+    While ProgramRunning(Compiler)
+      If AvailableProgramOutput(Compiler)
+        If skip > 0
+          skip -1
+          ReadProgramString(Compiler)
+          Continue
+        EndIf
+        
+        Output$ + ReadProgramString(Compiler) + Chr(13)
+      EndIf
+    Wend
+    CloseProgram(Compiler) ; Schließt die Verbindung zum Programm
+  EndIf
+  
+  ProcedureReturn  Output$
+EndProcedure
+
+; Debug IO_Get_CurrentSecurityEvents(5)
+;}
+
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
   IO_Get_MonthToNum("Januar") = 01
@@ -5253,9 +5279,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 4212
-; FirstLine = 23
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
+; CursorPosition = 2910
+; FirstLine = 49
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAABAAIAAAAAA9
 ; EnableThread
 ; EnableXP
 ; DPIAware

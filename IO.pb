@@ -2885,7 +2885,7 @@ CompilerIf 1
   ;{ Windows OS Information
   Procedure.s IO_Get_CurrentSecurityEvents(n=5)
   skip = 6
-  Compiler = RunProgram("powershell", "Get-WinEvent -LogName 'Security' -MaxEvents "+Str(n), "", #PB_Program_Open | #PB_Program_Read)
+  Compiler = RunProgram("powershell", "Get-WinEvent -LogName 'Security' -MaxEvents "+Str(n), "", #PB_Program_Open | #PB_Program_Read | #PB_Program_Hide)
   Output$ = ""
   If Compiler
     While ProgramRunning(Compiler)
@@ -5279,9 +5279,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 2910
-; FirstLine = 49
-; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAABAAIAAAAAA9
+; CursorPosition = 2884
+; FirstLine = 47
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAgAAAABAAIAAAAAA9
 ; EnableThread
 ; EnableXP
 ; DPIAware

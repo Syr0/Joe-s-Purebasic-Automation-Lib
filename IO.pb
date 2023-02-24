@@ -2883,29 +2883,27 @@ CompilerIf 1
   ;}
   
   ;{ Windows OS Information
-  Procedure.s IO_Get_CurrentSecurityEvents(n=5)
-    skip = 6
-    ;TODO: Needs to be run with Admin-Priviledges!
-    Compiler = RunProgram("powershell", "Get-WinEvent -LogName 'Security' -MaxEvents "+Str(n), "", #PB_Program_Open | #PB_Program_Read | #PB_Program_Hide)
-    Output$ = ""
-    If Compiler
-      While ProgramRunning(Compiler)
-        If AvailableProgramOutput(Compiler)
-          If skip > 0
-            skip -1
-            ReadProgramString(Compiler)
-            Continue
-          EndIf
-          
-          Output$ + ReadProgramString(Compiler) + Chr(13)
-        EndIf
-      Wend
-      CloseProgram(Compiler) ; Schließt die Verbindung zum Programm
-    EndIf
-    
-    ProcedureReturn  Output$
-  EndProcedure
-  
+Procedure.s IO_Get_CurrentSecurityEvents(lastminutes=1)
+  skip = 3
+  Compiler = RunProgram("powershell", "Get-WinEvent -FilterHashtable @{LogName = 'Security';StartTime=(Get-Date) - (New-TimeSpan -minute "+Str(lastminutes)+")} | Select-Object TimeCreated,@{name='NewProcessName';expression={ $_.Properties[5].Value }}, @{name='CommandLine';expression={ $_.Properties[8].Value }}", "", #PB_Program_Open | #PB_Program_Read | #PB_Program_Hide)
+  Output$ = ""
+  If Compiler
+    While ProgramRunning(Compiler)
+      If AvailableProgramOutput(Compiler)
+         If skip > 0
+           skip -1
+           ReadProgramString(Compiler)
+           Continue
+         EndIf
+         
+         Output$ + ReadProgramString(Compiler) + Chr(13)
+      EndIf
+    Wend
+    CloseProgram(Compiler) ; Schließt die Verbindung zum Programm
+  EndIf
+  ProcedureReturn  Output$
+EndProcedure
+
   ; Debug IO_Get_CurrentSecurityEvents(5)
   ;}
   
@@ -5280,9 +5278,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 18
-; FirstLine = 9
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9
+; CursorPosition = 2889
+; FirstLine = 42
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAQAAAAAAAAAAAAAA9
 ; EnableThread
 ; EnableXP
 ; DPIAware

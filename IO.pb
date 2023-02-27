@@ -2828,7 +2828,7 @@ CompilerEndIf
 CompilerIf 1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
-    Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.2.0.20220712.exe" ; Last update: 29.07.2022
+    Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.3.0.20221214.exe" ; Last update: 29.07.2022
     DownloadSize = 56237870
     
     Download = ReceiveHTTPFile(Downloadlink, GetTemporaryDirectory()+"TesseractInstaller.exe",#PB_HTTP_Asynchronous)
@@ -5176,9 +5176,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 32
-; FirstLine = 7
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
+; CursorPosition = 2830
+; FirstLine = 36
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAA5AAAAAAAAAAAAA5
 ; EnableThread
 ; EnableXP
 ; DPIAware

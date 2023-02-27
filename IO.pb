@@ -1556,7 +1556,32 @@ CompilerIf 1
       SendMessage_(hwnd,#WM_SETICON,1,Icon2Bytes) 
     EndIf
   EndProcedure
-  ;}
+  Procedure IO_Set_HideFromTaskBar(WindowID,Flag.l)
+  Protected TBL.ITaskbarList
+  CoInitialize_(0)
+  If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
+    TBL\HrInit()
+    If Flag
+      TBL\DeleteTab(hWnd)
+    Else
+      TBL\AddTab(hWnd)
+    EndIf
+    TBL\Release()
+  EndIf
+  CoUninitialize_()
+ 
+  DataSection
+    CLSID_TaskBarList:
+    Data.l $56FDF344
+    Data.w $FD6D, $11D0
+    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+    IID_ITaskBarList:
+    Data.l $56FDF342
+    Data.w $FD6D, $11D0
+    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+  EndDataSection
+EndProcedure
+;}
   
   ;{ Visual Output
   ;{ Structures
@@ -5176,9 +5201,15 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+<<<<<<< Updated upstream
 ; CursorPosition = 2830
 ; FirstLine = 36
 ; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAA5AAAAAAAAAAAAA5
+=======
+; CursorPosition = 1583
+; FirstLine = 34
+; Folding = AAAAAAAAAAAAAAAABhAAAAAAAAgJAAACAAAAAAAAA5
+>>>>>>> Stashed changes
 ; EnableThread
 ; EnableXP
 ; DPIAware

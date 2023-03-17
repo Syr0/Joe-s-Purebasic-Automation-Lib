@@ -5200,17 +5200,11 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-<<<<<<< Updated upstream
-; CursorPosition = 2830
-; FirstLine = 36
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAA5AAAAAAAAAAAAA5
-=======
-; CursorPosition = 1583
-; FirstLine = 34
-; Folding = AAAAAAAAAAAAAAAABhAAAAAAAAgJAAACAAAAAAAAA5
->>>>>>> Stashed changes
+
+; IDE Options = PureBasic 6.01 LTS (Windows - x64)
+; CursorPosition = 5202
+; FirstLine = 14
+; Folding = y---------------+---------v--------------
 ; EnableThread
 ; EnableXP
 ; DPIAware
-; EnablePurifier

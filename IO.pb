@@ -1421,7 +1421,7 @@ CompilerIf 1
   EndProcedure
   
   Procedure.d IO_Set_NN_Propagade(List Network.layer(),*DataS.Dataset) ;selects a random dataset entry
-                                                                               ;Loading into INPUT-Layer
+                                                                       ;Loading into INPUT-Layer
     FirstElement(Network())
     Neurons = ArraySize(Network()\Neurons())
     For x = 0 To Neurons
@@ -1469,7 +1469,7 @@ CompilerIf 1
   Procedure.d IO_Set_NN_Train(List Network.layer(),*DataS.Dataset,LearnConstant.d=0.3,Supervised=1,Reward=0) ; If Supervised, Traingsoutput() must be set. Else, define Reward -1 -> +1
     
     ;{ Error calculation
-
+    
     NewList Difference.Errors()
     AddElement(Difference())
     LastElement(Network())
@@ -1509,25 +1509,25 @@ CompilerIf 1
     Wend;}
     
     ;{ Train
-      LastElement(Difference())
-      LastElement(Network())
-      While ListIndex(Network()) > 0
+    LastElement(Difference())
+    LastElement(Network())
+    While ListIndex(Network()) > 0
+      PreviousElement(Network())
+      max = ArraySize(Network()\Neurons())
+      NextElement(Network())
+      mix = ArraySize(Network()\Neurons())
+      For x = 0 To max
         PreviousElement(Network())
-        max = ArraySize(Network()\Neurons())
+        neuro.d = Network()\Neurons(x)
         NextElement(Network())
-        mix = ArraySize(Network()\Neurons())
-        For x = 0 To max
-          PreviousElement(Network())
-          neuro.d = Network()\Neurons(x)
-          NextElement(Network())
-          For y = 0 To mix
-            Network()\Weights(x*(mix+1)+y) = Network()\Weights(x*(mix+1)+y) + (LearnConstant * Difference()\Neuron(y)) * neuro
-          Next
+        For y = 0 To mix
+          Network()\Weights(x*(mix+1)+y) = Network()\Weights(x*(mix+1)+y) + (LearnConstant * Difference()\Neuron(y)) * neuro
         Next
-        PreviousElement(Difference())
-        PreviousElement(Network())
-      Wend
-      ;}
+      Next
+      PreviousElement(Difference())
+      PreviousElement(Network())
+    Wend
+    ;}
     
   EndProcedure
   
@@ -1544,16 +1544,95 @@ CompilerIf 1
     FreeJSON(json)
   EndProcedure
   
-  ;Example
-  ; NewList Neural_params()
-  ; AddElement(Neural_params()) : Neural_params() = Pow(256,2)
-  ; AddElement(Neural_params()) : Neural_params() = 256
-  ; AddElement(Neural_params()) : Neural_params() = 128
-  ; AddElement(Neural_params()) : Neural_params() = 6
+  ;{ Example
+  ; Global NewList Test.layer()
   ; 
-  ; NewList Neural_network.layer()
-  ; CreateNet(Neural_network(),Neural_params())
-  
+  ; NewList Neural_params()
+  ; AddElement(Neural_params()) : Neural_params() = 100
+  ; AddElement(Neural_params()) : Neural_params() = 1000
+  ; AddElement(Neural_params()) : Neural_params() = 1000
+  ; AddElement(Neural_params()) : Neural_params() = 100
+  ; 
+  ; IO_Set_NN_CreateNet(Test(),Neural_params())
+  ; 
+  ; OpenConsole()
+  ; ; a+b = c
+  ; NewList Trainingsdaten.Dataset()
+  ; For x = 1 To 1000
+  ;   
+  ;   AddElement(Trainingsdaten())
+  ;   Dim Trainingsdaten()\Input(100)
+  ;   Dim Trainingsdaten()\Trainingsoutput(100)
+  ;   
+  ;   r1 = Random(50) : r2 = Random(50)
+  ;   For y = 0 To r1-1
+  ;     Trainingsdaten()\Input(y) = 1
+  ;   Next
+  ;   For y = 50 To 50+r2-1
+  ;     Trainingsdaten()\Input(y) = 1
+  ;   Next
+  ;   For y = 0 To r1+r2-1
+  ;     Trainingsdaten()\Trainingsoutput(y) = 1
+  ;   Next
+  ;   
+  ;   PrintN(Str(r1+r2)+" = "+Str(r1)+" + "+Str(r2)+" ")
+  ; Next
+  ; PrintN("----")
+  ; PrintN("Starting Training")
+  ; PrintN("----")
+  ; 
+  ; For x = 1 To 5000
+  ;   If x%100 = 0
+  ;     Print(".")
+  ;   EndIf
+  ;   
+  ;   SelectElement(Trainingsdaten(),Random(ListSize(Trainingsdaten())-1))
+  ;   IO_Set_NN_Propagade(Test(),Trainingsdaten())
+  ;   IO_Set_NN_Train(Test(),Trainingsdaten(),0.3,0,Random(2,0)-1)
+  ; Next
+  ; 
+  ; PrintN("Training finished.")
+  ; 
+  ; PrintN("Testing 10x with train data:")
+  ; 
+  ; For x = 1 To 10
+  ;   SelectElement(Trainingsdaten(),Random(ListSize(Trainingsdaten())))
+  ;   IO_Set_NN_Propagade(Test(),Trainingsdaten())
+  ;   
+  ;   ;De-Serialize Input 1
+  ;   Ergebnis = 0
+  ;   For y = 0 To 49
+  ;     If Trainingsdaten()\Trainingsoutput(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   r1 = Ergebnis
+  ;   
+  ;   ;De-Serialize Input 2
+  ;   Ergebnis = 0
+  ;   For y = 50 To 99
+  ;     If Trainingsdaten()\Input(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   r2 = Ergebnis
+  ;   
+  ;   ;De-Serialize Output
+  ;   Ergebnis = 0
+  ;   For y = 0 To ArraySize(Trainingsdaten()\Trainingsoutput())
+  ;     If Trainingsdaten()\Trainingsoutput(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   
+  ;   PrintN(Str(r1)+" + "+Str(r2)+" = "+Str(Ergebnis))
+  ; Next
   ;}
   
   ;{ Windowing
@@ -1583,31 +1662,31 @@ CompilerIf 1
     EndIf
   EndProcedure
   Procedure IO_Set_HideFromTaskBar(WindowID,Flag.l)
-  Protected TBL.ITaskbarList
-  CoInitialize_(0)
-  If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
-    TBL\HrInit()
-    If Flag
-      TBL\DeleteTab(hWnd)
-    Else
-      TBL\AddTab(hWnd)
+    Protected TBL.ITaskbarList
+    CoInitialize_(0)
+    If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
+      TBL\HrInit()
+      If Flag
+        TBL\DeleteTab(hWnd)
+      Else
+        TBL\AddTab(hWnd)
+      EndIf
+      TBL\Release()
     EndIf
-    TBL\Release()
-  EndIf
-  CoUninitialize_()
- 
-  DataSection
-    CLSID_TaskBarList:
-    Data.l $56FDF344
-    Data.w $FD6D, $11D0
-    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
-    IID_ITaskBarList:
-    Data.l $56FDF342
-    Data.w $FD6D, $11D0
-    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
-  EndDataSection
-EndProcedure
-;}
+    CoUninitialize_()
+    
+    DataSection
+      CLSID_TaskBarList:
+      Data.l $56FDF344
+      Data.w $FD6D, $11D0
+      Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+      IID_ITaskBarList:
+      Data.l $56FDF342
+      Data.w $FD6D, $11D0
+      Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+    EndDataSection
+  EndProcedure
+  ;}
   
   ;{ Visual Output
   ;{ Structures
@@ -5228,9 +5307,9 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
 CompilerEndIf
 
 ; IDE Options = PureBasic 6.02 LTS (Windows - x64)
-; CursorPosition = 1508
-; FirstLine = 85
-; Folding = y---------------jD5-----------------------
+; CursorPosition = 5169
+; FirstLine = 3
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5
 ; EnableThread
 ; EnableXP
 ; DPIAware

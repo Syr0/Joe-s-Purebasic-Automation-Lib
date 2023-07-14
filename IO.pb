@@ -1384,10 +1384,12 @@ CompilerEndIf
 CompilerIf 1
   ;{ AI
   
-  Structure DataSet
-    Array Input.d(0)
-    Array Trainingsoutput.d(0)
-  EndStructure
+  CompilerIf #PB_Compiler_IsMainFile
+    Structure DataSet
+      Array Input.d(0)
+      Array Trainingsoutput.d(0)
+    EndStructure
+  CompilerEndIf
   
   Structure Layer
     Array Neurons.d(0)
@@ -1396,11 +1398,6 @@ CompilerIf 1
   
   Structure Errors
     Array Neuron.d(0)
-  EndStructure
-  
-  Structure NetCollect
-    List NN.Layer()
-    Result.d
   EndStructure
   
   Global LearnConstant.d = 0.3
@@ -1518,7 +1515,7 @@ CompilerIf 1
     FreeJSON(json)
   EndProcedure
   
-  ;Example
+  ; Example
   ; NewList Neural_params()
   ; AddElement(Neural_params()) : Neural_params() = Pow(256,2)
   ; AddElement(Neural_params()) : Neural_params() = 256
@@ -1526,7 +1523,7 @@ CompilerIf 1
   ; AddElement(Neural_params()) : Neural_params() = 6
   ; 
   ; NewList Neural_network.layer()
-  ; CreateNet(Neural_network(),Neural_params())
+  ; IO_Set_NN_CreateNet(Neural_network(),Neural_params())
   
   ;}
   
@@ -1557,31 +1554,31 @@ CompilerIf 1
     EndIf
   EndProcedure
   Procedure IO_Set_HideFromTaskBar(WindowID,Flag.l)
-  Protected TBL.ITaskbarList
-  CoInitialize_(0)
-  If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
-    TBL\HrInit()
-    If Flag
-      TBL\DeleteTab(hWnd)
-    Else
-      TBL\AddTab(hWnd)
+    Protected TBL.ITaskbarList
+    CoInitialize_(0)
+    If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
+      TBL\HrInit()
+      If Flag
+        TBL\DeleteTab(hWnd)
+      Else
+        TBL\AddTab(hWnd)
+      EndIf
+      TBL\Release()
     EndIf
-    TBL\Release()
-  EndIf
-  CoUninitialize_()
- 
-  DataSection
-    CLSID_TaskBarList:
-    Data.l $56FDF344
-    Data.w $FD6D, $11D0
-    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
-    IID_ITaskBarList:
-    Data.l $56FDF342
-    Data.w $FD6D, $11D0
-    Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
-  EndDataSection
-EndProcedure
-;}
+    CoUninitialize_()
+    
+    DataSection
+      CLSID_TaskBarList:
+      Data.l $56FDF344
+      Data.w $FD6D, $11D0
+      Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+      IID_ITaskBarList:
+      Data.l $56FDF342
+      Data.w $FD6D, $11D0
+      Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
+    EndDataSection
+  EndProcedure
+  ;}
   
   ;{ Visual Output
   ;{ Structures
@@ -2827,7 +2824,140 @@ EndProcedure
     ProcedureReturn Number2
   EndProcedure
   
+  ;}
   
+  ;{ LFSR - Linear forward shift registers
+  Procedure.s IO_Get_LFSR_GenerateOutput(CoefficientsCommaSeperated.s,length.i,IV.s="")
+    
+    ;{ Explaination
+    ;     CoefficientsCommaSeperated = "4,1,0"
+    ;     IV = "1100"
+    ;     __ __ __ __
+    ;    |  |  |  |  |
+    ;   >|1 |1 |0 |0 |-->
+    ;   ^|__|__|__|__|i
+    ;   |         v   v
+    ;   ^---------+---<
+    ;   4   3  2  1   0
+    
+    ;     I tested the "fast" version, which uses 64bit registers vs the "slow" version, which uses arrays per bit.
+    ;     It's weird, but the two version are exactly the same fast. Mabye because the writing away of the results
+    ;     is the real bottleneck here. However, both versions work so I keep both here.
+    ;     Test results:
+    ;    100000bits = 10574ms <- slow
+    ;    100000bits = 10521ms <- fast
+    ;    10000bits = 149ms <- fast (even slower then the other version!)
+    ;    10000bits = 130ms <- slow
+    
+    ;}
+    
+    ;{ Calulcate the polynom degree
+    NewList Polynoms.i()
+    For x = 1 To CountString(CoefficientsCommaSeperated,",")+1
+      AddElement(Polynoms())
+      Polynoms() = Val(StringField(CoefficientsCommaSeperated,x,","))
+    Next
+    SortList(Polynoms(),#PB_Sort_Descending)
+    FirstElement(Polynoms())
+    DegreeOfPolynom = Polynoms();}
+    
+    ;{ IV check highest Coefficient has no memory cell - it's just the input
+    If IV = ""
+      For x = 1 To DegreeOfPolynom-1
+        IV + "0"
+      Next
+      IV+"1"
+    Else
+      If Len(IV) > DegreeOfPolynom
+        ProcedureReturn "IV too big"
+      ElseIf Len(IV) < DegreeOfPolynom
+        ProcedureReturn "IV too small"
+      EndIf
+    EndIf;}
+    
+    ;{ Create LFSR (binary + shift would be WAY faster, but not working above degree 63)
+    
+    If DegreeOfPolynom < 0;64
+                          ;Fast way
+      LastElement(Polynoms())
+      LFSR.q = 0
+      For x = 0 To DegreeOfPolynom-1
+        LFSR << 1
+        If Mid(IV,x+1,1) = "1"
+          LFSR +1
+        EndIf
+      Next
+      
+    Else
+      ;Slow but infinite long
+      Dim LFSR(DegreeOfPolynom-1)
+      For x = 0 To DegreeOfPolynom-1
+        LFSR(x) = Val(Mid(iv,DegreeOfPolynom-x,1))
+      Next
+    EndIf;}
+    
+    ;{ Create LFSR- "Mask"
+    If DegreeOfPolynom < 0;64
+      Mask.q = 0
+      LastElement(Polynoms())
+      i=0
+      Repeat
+        Mask << 1
+        If i = Polynoms()
+          Mask + 1
+          If Not PreviousElement(Polynoms())
+            Break
+          EndIf
+        Else
+          Mask + 0
+        EndIf
+        i+1
+      ForEver
+    Else
+      
+    EndIf;}
+    
+    ;{ Run LFSR
+    If DegreeOfPolynom < 0;64
+                          ;Fast way
+      For x = 1 To length
+        Back.q = LFSR & Mask
+        For y = 1 To DegreeOfPolynom
+          FeedBack = FeedBack ! Back%2
+          Back >> 1
+        Next
+        
+        FeedBack << (DegreeOfPolynom-1)
+        LFSR >> 1
+        LFSR = LFSR | FeedBack
+        
+        Out.s + Chr($30 + lfsr%2)
+        ;State of the lfsr can be debugged here:
+        ;Debug RSet(Bin(LFSR),DegreeOfPolynom,"0")
+      Next
+      ProcedureReturn out
+    Else
+      ;Slow but infinite big lfsr
+      
+      ;Remove the 'ingoing' polynom
+      FirstElement(Polynoms()) : DeleteElement(Polynoms())
+      For l = 1 To length
+        FeedBack = 0
+        LastElement(Polynoms())
+        Out.s = Out.s + Chr($30+LFSR(0))
+        For x = 0 To DegreeOfPolynom-1-1
+          If x = Polynoms()
+            FeedBack = FeedBack +LFSR(x)
+            PreviousElement(Polynoms())
+          EndIf
+          LFSR(x) = LFSR(x+1)
+        Next
+        LFSR(DegreeOfPolynom-1) = FeedBack%2
+      Next
+    EndIf
+    ProcedureReturn out.s
+    
+  EndProcedure
   ;}
   
   ;{ Common Knowledge
@@ -2847,6 +2977,7 @@ EndProcedure
                                     ;}
   
 CompilerEndIf
+;}
 ;--------------------------;
 ;   Using external Tools   ;
 ;--------------------------;
@@ -5197,14 +5328,15 @@ CompilerIf 1
   
 CompilerEndIf
 
+
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 
-; IDE Options = PureBasic 6.01 LTS (Windows - x64)
-; CursorPosition = 5202
-; FirstLine = 14
-; Folding = y---------------+---------v--------------
+; IDE Options = PureBasic 6.02 LTS (Windows - x64)
+; CursorPosition = 5330
+; FirstLine = 7
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+
 ; EnableThread
 ; EnableXP
 ; DPIAware

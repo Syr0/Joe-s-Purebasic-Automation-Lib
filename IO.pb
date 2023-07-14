@@ -1400,8 +1400,6 @@ CompilerIf 1
     Array Neuron.d(0)
   EndStructure
   
-  Global LearnConstant.d = 0.3
-  
   Procedure IO_Set_NN_CreateNet(List NewNeuralNetwork.layer(),List Params())
     position = 0
     ForEach Params()
@@ -1419,12 +1417,12 @@ CompilerIf 1
     Next
   EndProcedure
   
-  Procedure.d IO_Set_NN_Propagade(List Network.layer(),*DataS.Dataset,Train=0) ;selects a random dataset entry
-                                                                               ;Loading into INPUT-Layer
+  Procedure.d IO_Set_NN_Propagade(List Network.layer(),*DataS.Dataset) ;selects a random dataset entry
+                                                                       ;Loading into INPUT-Layer
     FirstElement(Network())
-    Neurons = ArraySize(Network()\Neurons())+1
-    For x = 1 To Neurons
-      Network()\Neurons(x-1) = *DataS\Input(x-1)
+    Neurons = ArraySize(Network()\Neurons())
+    For x = 0 To Neurons
+      Network()\Neurons(x) = *DataS\Input(x)
     Next
     oldNeurons = Neurons
     
@@ -1444,18 +1442,47 @@ CompilerIf 1
       Next
       oldNeurons = Neurons
     Wend
+  EndProcedure
+  
+  Procedure.s IO_Get_NN_CurrentOutput(List Network.layer(),Neuron=-1,Seperator.s="")
+    Ergebnis.s = ""
     
-    ;Error calculation
+    LastElement(Network())
+    m = ArraySize(Network()\Neurons())
+    For z = 0 To m
+      If neuron = -1
+        Ergebnis + Seperator + Str(Network()\Neurons(z))
+      Else
+        If neuron = z
+          Ergebnis = Str(Network()\Neurons(z))
+          ProcedureReturn Ergebnis
+        EndIf
+      EndIf
+    Next
+    
+    ProcedureReturn Ergebnis
+  EndProcedure
+  
+  Procedure.d IO_Set_NN_Train(List Network.layer(),*DataS.Dataset,LearnConstant.d=0.3,Supervised=1,Reward=0) ; If Supervised, Traingsoutput() must be set. Else, define Reward -1 -> +1
+    
+    ;{ Error calculation
+    
     NewList Difference.Errors()
     AddElement(Difference())
     LastElement(Network())
     Dim Difference()\Neuron(ArraySize(Network()\Neurons()))
     
     m = ArraySize(Network()\Neurons())
-    For z = 0 To m
-      Ergebnis_neuron_z = Network()\Neurons(z)
-      Difference()\Neuron(z) = (*DataS\Trainingsoutput(z) - Network()\Neurons(z)) * (1.0 -Network()\Neurons(z))
-    Next
+    
+    If Supervised
+      For z = 0 To m
+        Difference()\Neuron(z) = (*DataS\Trainingsoutput(z) - Network()\Neurons(z)) * (1.0 -Network()\Neurons(z))
+      Next
+    Else ; Unsupervised: Reward / Punish
+      For z = 0 To m
+        Difference()\Neuron(z) = (Reward * (1.0 -Network()\Neurons(z)))
+      Next
+    EndIf
     
     While ListIndex(Network()) > 0
       mix = ArraySize(Network()\Neurons())
@@ -1476,29 +1503,28 @@ CompilerIf 1
         PreviousElement(Network())
         Difference()\Neuron(x) = Network()\Neurons(x) * (1.0 - Network()\Neurons(x)) * Fehler1
       Next
-    Wend
+    Wend;}
     
-    ;Backpropagade
-    If Train = 1
-      LastElement(Difference())
-      LastElement(Network())
-      While ListIndex(Network()) > 0
+    ;{ Train
+    LastElement(Difference())
+    LastElement(Network())
+    While ListIndex(Network()) > 0
+      PreviousElement(Network())
+      max = ArraySize(Network()\Neurons())
+      NextElement(Network())
+      mix = ArraySize(Network()\Neurons())
+      For x = 0 To max
         PreviousElement(Network())
-        max = ArraySize(Network()\Neurons())
+        neuro.d = Network()\Neurons(x)
         NextElement(Network())
-        mix = ArraySize(Network()\Neurons())
-        For x = 0 To max
-          PreviousElement(Network())
-          neuro.d = Network()\Neurons(x)
-          NextElement(Network())
-          For y = 0 To mix
-            Network()\Weights(x*(mix+1)+y) = Network()\Weights(x*(mix+1)+y) + (LearnConstant * Difference()\Neuron(y)) * neuro
-          Next
+        For y = 0 To mix
+          Network()\Weights(x*(mix+1)+y) = Network()\Weights(x*(mix+1)+y) + (LearnConstant * Difference()\Neuron(y)) * neuro
         Next
-        PreviousElement(Difference())
-        PreviousElement(Network())
-      Wend
-    EndIf
+      Next
+      PreviousElement(Difference())
+      PreviousElement(Network())
+    Wend
+    ;}
     
   EndProcedure
   
@@ -1515,17 +1541,96 @@ CompilerIf 1
     FreeJSON(json)
   EndProcedure
   
-  ; Example
-  ; NewList Neural_params()
-  ; AddElement(Neural_params()) : Neural_params() = Pow(256,2)
-  ; AddElement(Neural_params()) : Neural_params() = 256
-  ; AddElement(Neural_params()) : Neural_params() = 128
-  ; AddElement(Neural_params()) : Neural_params() = 6
+  ;{ Example
+  ; Global NewList Test.layer()
   ; 
-  ; NewList Neural_network.layer()
-  ; IO_Set_NN_CreateNet(Neural_network(),Neural_params())
-  
-  ;}
+  ; NewList Neural_params()
+  ; AddElement(Neural_params()) : Neural_params() = 100
+  ; AddElement(Neural_params()) : Neural_params() = 1000
+  ; AddElement(Neural_params()) : Neural_params() = 1000
+  ; AddElement(Neural_params()) : Neural_params() = 100
+  ; 
+  ; IO_Set_NN_CreateNet(Test(),Neural_params())
+  ; 
+  ; OpenConsole()
+  ; ; a+b = c
+  ; NewList Trainingsdaten.Dataset()
+  ; For x = 1 To 1000
+  ;   
+  ;   AddElement(Trainingsdaten())
+  ;   Dim Trainingsdaten()\Input(100)
+  ;   Dim Trainingsdaten()\Trainingsoutput(100)
+  ;   
+  ;   r1 = Random(50) : r2 = Random(50)
+  ;   For y = 0 To r1-1
+  ;     Trainingsdaten()\Input(y) = 1
+  ;   Next
+  ;   For y = 50 To 50+r2-1
+  ;     Trainingsdaten()\Input(y) = 1
+  ;   Next
+  ;   For y = 0 To r1+r2-1
+  ;     Trainingsdaten()\Trainingsoutput(y) = 1
+  ;   Next
+  ;   
+  ;   PrintN(Str(r1+r2)+" = "+Str(r1)+" + "+Str(r2)+" ")
+  ; Next
+  ; PrintN("----")
+  ; PrintN("Starting Training")
+  ; PrintN("----")
+  ; 
+  ; For x = 1 To 5000
+  ;   If x%100 = 0
+  ;     Print(".")
+  ;   EndIf
+  ;   
+  ;   SelectElement(Trainingsdaten(),Random(ListSize(Trainingsdaten())-1))
+  ;   IO_Set_NN_Propagade(Test(),Trainingsdaten())
+  ;   IO_Set_NN_Train(Test(),Trainingsdaten(),0.3,0,Random(2,0)-1)
+  ; Next
+  ; 
+  ; PrintN("Training finished.")
+  ; 
+  ; PrintN("Testing 10x with train data:")
+  ; 
+  ; For x = 1 To 10
+  ;   SelectElement(Trainingsdaten(),Random(ListSize(Trainingsdaten())))
+  ;   IO_Set_NN_Propagade(Test(),Trainingsdaten())
+  ;   
+  ;   ;De-Serialize Input 1
+  ;   Ergebnis = 0
+  ;   For y = 0 To 49
+  ;     If Trainingsdaten()\Trainingsoutput(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   r1 = Ergebnis
+  ;   
+  ;   ;De-Serialize Input 2
+  ;   Ergebnis = 0
+  ;   For y = 50 To 99
+  ;     If Trainingsdaten()\Input(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   r2 = Ergebnis
+  ;   
+  ;   ;De-Serialize Output
+  ;   Ergebnis = 0
+  ;   For y = 0 To ArraySize(Trainingsdaten()\Trainingsoutput())
+  ;     If Trainingsdaten()\Trainingsoutput(y) >= 0.5
+  ;       Ergebnis + 1
+  ;     Else
+  ;       Break
+  ;     EndIf
+  ;   Next
+  ;   
+  ;   PrintN(Str(r1)+" + "+Str(r2)+" = "+Str(Ergebnis))
+  ; Next
+
   
   ;{ Windowing
   Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
@@ -5332,11 +5437,8 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-
 ; IDE Options = PureBasic 6.02 LTS (Windows - x64)
-; CursorPosition = 5330
-; FirstLine = 7
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+
-; EnableThread
+; CursorPosition = 10
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
 ; EnableXP
 ; DPIAware

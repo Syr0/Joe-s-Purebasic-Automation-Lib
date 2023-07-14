@@ -1630,7 +1630,8 @@ CompilerIf 1
   ;   
   ;   PrintN(Str(r1)+" + "+Str(r2)+" = "+Str(Ergebnis))
   ; Next
-
+  ;}
+  ;}
   
   ;{ Windowing
   Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
@@ -5438,7 +5439,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.02 LTS (Windows - x64)
-; CursorPosition = 10
+; CursorPosition = 1381
+; FirstLine = 6
 ; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
 ; EnableXP
 ; DPIAware

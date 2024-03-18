@@ -2558,7 +2558,6 @@ CompilerIf 1
     *packet\ARP\targetipaddress = iprequested
     *packet\ARP\senderipaddress = ipasking
   EndProcedure
-  
   ; arpacket.Ethernet
   ; craftarp_requestpacket(arpacket,MakeIPAddress(192,168,178,1),MakeIPAddress(192,168,178,2),"00:00:00:00:00:00","00:00:00:00:00:00")
 
@@ -3129,6 +3128,85 @@ CompilerIf 1
     
   EndProcedure
   ;}
+  ;}
+  
+  ;{ FEC
+  
+    ;{ Convolutional Codes
+        Structure ConvCodeStruct
+          G1.s
+          G2.s
+          Cells.i
+          Array Register.a(1)
+          Return1.a
+          Return2.a
+          *InputData
+          InputCounter.i
+        EndStructure
+      
+      Procedure IO_Get_FEC_StepOnceConvolutionalCode(*Struct.ConvCodeStruct)
+        ; x54 --> 0101 0100 -> LFSR -> Output
+        ;                 ^
+        ;          First Bit in LFSR
+        ;Stepping LFSR
+        
+        *Struct\Return1 = 0
+        *Struct\Return2 = 0
+        lastbit = *Struct\Register(*Struct\Cells-1)
+        For x = *Struct\Cells To 1 Step -1
+          *Struct\Register(x) = *Struct\Register(x-1)
+        Next
+        InputbyteIndex = Round(*Struct\Inputcounter/8,#PB_Round_Down)
+        byte = PeekB(*Struct\InputData+InputbyteIndex)
+        bitposition = (byte >> (*Struct\Inputcounter%8))
+      
+        *Struct\Register(0) = bitposition%2
+        *Struct\InputCounter = *Struct\InputCounter + 1
+      
+        ;Outgoing Data
+        For x = 0 To *Struct\Cells
+          If Mid(*Struct\G1,x+1,1) = "1"
+            *Struct\Return1 = (*Struct\Return1 + *Struct\Register(x)) %2
+          EndIf
+          
+          If Mid(*Struct\G2,x+1,1) = "1"
+            *Struct\Return2 = (*Struct\Return2 + *Struct\Register(x)) %2
+          EndIf
+        Next
+        
+      EndProcedure
+      Procedure IO_Set_FEC_InitConvCode(*StructToInit.ConvCodeStruct,FirstBinaryGeneratorPolynome.s,SecondBinaryGeneratorPolynome.s,*DataPointer)
+        *StructToInit\G1 = LTrim(FirstBinaryGeneratorPolynome,"0")
+        *StructToInit\G2 = LTrim(SecondBinaryGeneratorPolynome,"0")
+        *StructToInit\InputData = *DataPointer
+        
+        *StructToInit\Cells = Len(*StructToInit\G1)
+        If Len(*StructToInit\G2) > *StructToInit\Cells
+          *StructToInit\Cells = Len(*StructToInit\G2)
+        EndIf
+        
+        Dim *StructToInit\Register(*StructToInit\Cells)
+      
+      EndProcedure
+      
+      ;{ Example
+  ;     ; INIT
+  ;     TestString.s = "This is test data"
+  ;     Struct.ConvCodeStruct
+  ;     IO_Set_FEC_InitConvCode(@Struct,"11011","10001",Ascii(TestString))
+  ;     
+  ;     ;STEPPING
+  ;     For Steps = 0 To Len(TestString) * 8+5
+  ;       IO_Get_FEC_StepOnceConvolutionalCode(@Struct)
+  ;       Out1.s + Str(Struct\Return1)
+  ;       Out2.s + Str(Struct\Return2)
+  ;     Next
+  ;     
+  ;     ; OUTPUT
+  ;     Debug Out1.s
+  ;     Debug out2.s
+      ;}
+      ;}
   
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
@@ -3147,6 +3225,8 @@ CompilerIf 1
                                     ;}
   
 CompilerEndIf
+
+
 ;}
 ;--------------------------;
 ;   Using external Tools   ;
@@ -5503,8 +5583,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.04 LTS (Windows - x64)
-; CursorPosition = 2954
-; FirstLine = 29
-; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAA5
+; CursorPosition = 3231
+; FirstLine = 14
+; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAA9
 ; EnableXP
 ; DPIAware

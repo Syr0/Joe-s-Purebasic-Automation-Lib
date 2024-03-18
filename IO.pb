@@ -2561,7 +2561,6 @@ CompilerIf 1
   ; arpacket.Ethernet
   ; craftarp_requestpacket(arpacket,MakeIPAddress(192,168,178,1),MakeIPAddress(192,168,178,2),"00:00:00:00:00:00","00:00:00:00:00:00")
 
-
   ;}
   
   ;{ Converter
@@ -5583,8 +5582,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.04 LTS (Windows - x64)
-; CursorPosition = 3231
-; FirstLine = 14
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAA9
+; CursorPosition = 2562
+; FirstLine = 44
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAEAAAAAAAABAAAAAAAAA9
 ; EnableXP
 ; DPIAware

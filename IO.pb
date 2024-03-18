@@ -3131,7 +3131,7 @@ CompilerIf 1
   
   ;{ FEC
   
-    ;{ Convolutional Codes
+    ;{ Convolutional EnCoder
         Structure ConvCodeStruct
           G1.s
           G2.s
@@ -3224,7 +3224,6 @@ CompilerIf 1
                                     ;}
   
 CompilerEndIf
-
 
 ;}
 ;--------------------------;
@@ -5582,8 +5581,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.04 LTS (Windows - x64)
-; CursorPosition = 2562
-; FirstLine = 44
-; Folding = AAAAAAAAAAAAAAAABAAAAAAAAEAAAAAAAABAAAAAAAAA9
+; CursorPosition = 3133
+; FirstLine = 49
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAGAAAABAAAAAAAAA9
 ; EnableXP
 ; DPIAware

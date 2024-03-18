@@ -2499,6 +2499,70 @@ CompilerIf 1
       ProcedureReturn ""
     EndIf
   EndProcedure
+  
+  ;{ ARP
+    Structure ARP
+      type.c
+      hardwaretype.c
+      protocoltype.c
+      hardwaresize.a
+      protocolsize.a
+      opcode.c
+      sendermacaddress.s{3}
+      senderipaddress.l
+      targetmacaddress.s{3}
+      targetipaddress.l
+      padding.s{9}
+    EndStructure
+  
+     Structure Ethernet
+       destinationmac.s{3}
+       sourcemac.s{3}
+       ARP.ARP
+     EndStructure
+  ;}
+  Procedure IO_Set_ARP_MacToString (*destinationarray,mac.s)
+    
+    If CountString(mac,":") <> 5
+      Debug "mactostring  : mac looks different then expected: "+mac
+      ProcedureReturn -1
+    EndIf
+    mac + ":"
+    For x = 1 To 6
+      PokeA(*destinationarray+x-1, Val("$"+StringField(mac,x,":")))
+    Next
+    
+    ProcedureReturn 1
+  EndProcedure
+  Procedure IO_Set_ARP_CraftRequestPacket(*packet.Ethernet,iprequested,ipasking,macrequesting.s,macasking.s)  
+    arptype = $0608
+    #hardwaretype_ethernet = $0100
+    #protocoltype_ipv4 = $8
+    hardwaresize = 6
+    protocolsize = 4
+    #opcode_request = $0100
+    #opcode_reply = 2
+  
+    *packet\ARP\type = arptype
+    *packet\ARP\hardwaretype = #hardwaretype_ethernet
+    *packet\ARP\protocoltype = #protocoltype_ipv4
+    *packet\ARP\hardwaresize = hardwaresize
+    *packet\ARP\protocolsize = protocolsize
+    *packet\ARP\opcode = #opcode_request
+  
+    IO_Set_ARP_MacToString(@*packet\ARP\targetmacaddress,macrequesting)
+    IO_Set_ARP_MacToString(@*packet\ARP\sendermacaddress,macasking)
+    IO_Set_ARP_MacToString(@*packet\sourcemac,"00:00:00:00:00:00")
+    IO_Set_ARP_MacToString(@*packet\destinationmac,"00:00:00:00:00:00")
+    
+    *packet\ARP\targetipaddress = iprequested
+    *packet\ARP\senderipaddress = ipasking
+  EndProcedure
+  
+  ; arpacket.Ethernet
+  ; craftarp_requestpacket(arpacket,MakeIPAddress(192,168,178,1),MakeIPAddress(192,168,178,2),"00:00:00:00:00:00","00:00:00:00:00:00")
+
+
   ;}
   
   ;{ Converter
@@ -5438,9 +5502,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.02 LTS (Windows - x64)
-; CursorPosition = 1381
-; FirstLine = 6
-; Folding = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-
+; IDE Options = PureBasic 6.04 LTS (Windows - x64)
+; CursorPosition = 2954
+; FirstLine = 29
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAA5
 ; EnableXP
 ; DPIAware

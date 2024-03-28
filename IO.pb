@@ -3204,9 +3204,11 @@ CompilerIf 1
   ;     ; OUTPUT
   ;     Debug Out1.s
   ;     Debug out2.s
+      
+      
       ;}
-      ;}
-  
+    ;}
+      
   ;{ Common Knowledge
   Global NewMap IO_Get_MonthToNum();{
   IO_Get_MonthToNum("Januar") = 01
@@ -5580,9 +5582,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.04 LTS (Windows - x64)
-; CursorPosition = 3133
-; FirstLine = 49
-; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAGAAAABAAAAAAAAA9
+; IDE Options = PureBasic 6.10 LTS (Windows - x64)
+; CursorPosition = 2995
+; FirstLine = 40
+; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAABAAAAAAAAA9
 ; EnableXP
 ; DPIAware

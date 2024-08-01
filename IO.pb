@@ -2181,6 +2181,51 @@ CompilerIf 1
       ForEver
     EndIf
   EndProcedure
+  Procedure IO_Set_Editor_MakeEditable(EditorGadget)
+    SendMessage_(GadgetID(#editor), #EM_SETTEXTMODE, #TM_RICHTEXT, 0)
+  EndProcedure
+  Procedure IO_Set_Editor_Select(Gadget, LineStart.l, CharStart.l, LineEnd.l, CharEnd.l)   
+  Protected sel.CHARRANGE
+  sel\cpMin = SendMessage_(GadgetID(Gadget), #EM_LINEINDEX, LineStart, 0) + CharStart - 1
+  If LineEnd = -1
+    LineEnd = SendMessage_(GadgetID(Gadget), #EM_GETLINECOUNT, 0, 0)-1
+  EndIf
+  sel\cpMax = SendMessage_(GadgetID(Gadget), #EM_LINEINDEX, LineEnd, 0)
+  If CharEnd = -1
+    sel\cpMax + SendMessage_(GadgetID(Gadget), #EM_LINELENGTH, sel\cpMax, 0)
+  Else
+    sel\cpMax + CharEnd - 1
+  EndIf
+  SendMessage_(GadgetID(Gadget), #EM_EXSETSEL, 0, @sel)
+EndProcedure
+  Procedure IO_Set_Editor_Color(Gadget, Color)
+    Protected format.CHARFORMAT
+    format\cbSize = SizeOf(CHARFORMAT)
+    format\dwMask = #CFM_COLOR
+    format\crTextColor = Color
+    SendMessage_(GadgetID(Gadget), #EM_SETCHARFORMAT, #SCF_SELECTION, @format)
+  EndProcedure
+  Procedure IO_Set_Editor_FontSize(Gadget, Fontsize.l)
+    Protected format.CHARFORMAT
+    format\cbSize = SizeOf(CHARFORMAT)
+    format\dwMask = #CFM_SIZE
+    format\yHeight = FontSize*20
+    SendMessage_(GadgetID(Gadget), #EM_SETCHARFORMAT, #SCF_SELECTION, @format)
+  EndProcedure
+  Procedure IO_Set_Editor_Font(Gadget, FontName.s)
+    Protected format.CHARFORMAT
+    format\cbSize = SizeOf(CHARFORMAT)
+    format\dwMask = #CFM_FACE
+    PokeS(@format\szFaceName, FontName)
+    SendMessage_(GadgetID(Gadget), #EM_SETCHARFORMAT, #SCF_SELECTION, @format)
+  EndProcedure
+  Procedure IO_Set_Editor_Format(Gadget, Flags.l)
+  Protected format.CHARFORMAT
+  format\cbSize = SizeOf(CHARFORMAT)
+  format\dwMask = #CFM_ITALIC | #CFM_BOLD | #CFM_STRIKEOUT | #CFM_UNDERLINE
+  format\dwEffects = Flags
+  SendMessage_(GadgetID(Gadget), #EM_SETCHARFORMAT, #SCF_SELECTION, @format)
+EndProcedure
   ;}
   
   ;{ String-magic
@@ -5582,9 +5627,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.10 LTS (Windows - x64)
-; CursorPosition = 2995
-; FirstLine = 40
-; Folding = AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAABAAAAAAAAA9
+; IDE Options = PureBasic 6.04 LTS (Windows - x64)
+; CursorPosition = 2186
+; FirstLine = 51
+; Folding = AAAAAAAAAAAAAAAABAgAAAAAAAAAAAAAAAABAAAAAAAAA9
 ; EnableXP
 ; DPIAware

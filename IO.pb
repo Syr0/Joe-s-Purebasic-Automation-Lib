@@ -326,6 +326,53 @@ CompilerIf 1
   
   ;}
   
+  ;{ Activity
+  Global Activity_isMonitoring = #False
+  Global Activity_MonitorThreadID = 0
+  Global Activity_PreviousTime.l = 0
+  
+  Procedure IO_Check_InputMonitor(*callbackProcedure)
+    Define plii.LASTINPUTINFO
+    plii\cbSize = SizeOf(LASTINPUTINFO)
+    
+    Activity_PreviousTime = 0
+    
+    Repeat
+      If Activity_isMonitoring = #False
+        Break
+      EndIf
+      
+      If GetLastInputInfo_(@plii)
+        If plii\dwTime > Activity_PreviousTime
+          CallFunctionFast(*callbackProcedure)
+          Activity_PreviousTime = plii\dwTime
+        EndIf
+      EndIf
+      
+      Delay(100)
+    ForEver
+  EndProcedure
+  
+  Procedure IO_Set_ToggleInputMonitoring(*callbackProcedure)
+    If Activity_isMonitoring = #False
+      Activity_isMonitoring = #True
+      Activity_MonitorThreadID = CreateThread(@IO_Check_InputMonitor(), *callbackProcedure)
+    Else
+      Activity_isMonitoring = #False
+    EndIf
+  EndProcedure
+  
+; Example usage
+;   Procedure MyCallback()
+;     Debug "Input detected"
+;   EndProcedure
+;   
+;   IO_Set_ToggleInputMonitoring(@MyCallback()) ; Start monitoring
+;   Delay(5000)
+;   IO_Set_ToggleInputMonitoring(@MyCallback()) ; Stop monitoring
+
+  ;}
+  
   ;{ InterProcessCommunication
   Procedure IO_Set_SendWindowCommand(hwnd,wm_command)
     PostMessage_(hWnd,wm_command,0,0)
@@ -2181,8 +2228,8 @@ CompilerIf 1
       ForEver
     EndIf
   EndProcedure
-  Procedure IO_Set_Editor_MakeEditable(EditorGadget)
-    SendMessage_(GadgetID(#editor), #EM_SETTEXTMODE, #TM_RICHTEXT, 0)
+  Procedure IO_Set_Editor_MakeEditable(GadgetID,EditorGadget)
+    SendMessage_(GadgetID, #EM_SETTEXTMODE, #TM_RICHTEXT, 0)
   EndProcedure
   Procedure IO_Set_Editor_Select(Gadget, LineStart.l, CharStart.l, LineEnd.l, CharEnd.l)   
   Protected sel.CHARRANGE
@@ -5627,9 +5674,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.04 LTS (Windows - x64)
-; CursorPosition = 2186
-; FirstLine = 51
-; Folding = AAAAAAAAAAAAAAAABAgAAAAAAAAAAAAAAAABAAAAAAAAA9
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; CursorPosition = 374
+; FirstLine = 22
+; Folding = BAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
 ; EnableXP
 ; DPIAware

@@ -875,8 +875,8 @@ CompilerIf 1
   ;   EndProcedure 
   ;}
   Procedure IO_Get_MemAdressByModandPointerListx64(PID,List Offsets.q(),ModuleName$="",hProcess=-1)
-    ;Wenn der Speicher einer DLL angehört statt dem eigentlichen Prozess
-    ;ModuleName$ z.b. "mono.dll"
+    ;If the desired memory is part of a dll
+    ;ModuleName$ = "mono.dll"
     If hProcess<=0
       hProcess = OpenProcess_(#PROCESS_ALL_ACCESS, 0, PID)
     EndIf
@@ -890,7 +890,7 @@ CompilerIf 1
     EndIf
     
     FirstElement(Offsets())
-    address = moduleAddress+Offsets() ; Nicht getestet, sollte klappen
+    address = moduleAddress+Offsets() ; not tested
     Repeat
       ReadProcessMemory_(hProcess, address , @address, 8, #IGNORE)
       If Not NextElement(Offsets())
@@ -5687,8 +5687,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 370
-; FirstLine = 42
-; Folding = BAAAAgDAAAAAAAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
+; CursorPosition = 892
+; FirstLine = 51
+; Folding = BAAAAAEAAAAgIAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
 ; EnableXP
 ; DPIAware

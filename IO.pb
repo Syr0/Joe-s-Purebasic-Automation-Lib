@@ -327,25 +327,32 @@ CompilerIf 1
   ;}
   
   ;{ Activity
-  Global Activity_isMonitoring = #False
-  Global Activity_MonitorThreadID = 0
-  Global Activity_PreviousTime.l = 0
+  Global isMonitoring = #False
+  Global MonitorThreadID = 0
+  Global UserActive = #False
   
   Procedure IO_Check_InputMonitor(*callbackProcedure)
     Define plii.LASTINPUTINFO
+    Define PreviousTime.l = 0
+    Define LastActionTime.l = GetTickCount_()
     plii\cbSize = SizeOf(LASTINPUTINFO)
     
-    Activity_PreviousTime = 0
-    
     Repeat
-      If Activity_isMonitoring = #False
+      If isMonitoring = #False
         Break
       EndIf
       
       If GetLastInputInfo_(@plii)
-        If plii\dwTime > Activity_PreviousTime
+        If plii\dwTime > PreviousTime
+          If (GetTickCount_() - LastActionTime) >= 2000 And UserActive = #False
+            UserActive = #True
+            CallFunctionFast(*callbackProcedure)
+          EndIf
+          LastActionTime = GetTickCount_()
+          PreviousTime = plii\dwTime
+        ElseIf (GetTickCount_() - LastActionTime) >= 2000 And UserActive = #True
+          UserActive = #False
           CallFunctionFast(*callbackProcedure)
-          Activity_PreviousTime = plii\dwTime
         EndIf
       EndIf
       
@@ -354,22 +361,27 @@ CompilerIf 1
   EndProcedure
   
   Procedure IO_Set_ToggleInputMonitoring(*callbackProcedure)
-    If Activity_isMonitoring = #False
-      Activity_isMonitoring = #True
-      Activity_MonitorThreadID = CreateThread(@IO_Check_InputMonitor(), *callbackProcedure)
+    If isMonitoring = #False
+      isMonitoring = #True
+      MonitorThreadID = CreateThread(@IO_Check_InputMonitor(), *callbackProcedure)
     Else
-      Activity_isMonitoring = #False
+      isMonitoring = #False
     EndIf
   EndProcedure
   
-; Example usage
+;Example
+  
 ;   Procedure MyCallback()
-;     Debug "Input detected"
+;     If UserActive = #True
+;       Debug "User is now ACTIVE"
+;     Else
+;       Debug "User is now INACTIVE"
+;     EndIf
 ;   EndProcedure
-;   
-;   IO_Set_ToggleInputMonitoring(@MyCallback()) ; Start monitoring
-;   Delay(5000)
-;   IO_Set_ToggleInputMonitoring(@MyCallback()) ; Stop monitoring
+  
+;   IO_Set_ToggleInputMonitoring(@MyCallback())
+;   Delay(100000)
+;   IO_Set_ToggleInputMonitoring(@MyCallback())
 
   ;}
   
@@ -5675,8 +5687,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 374
-; FirstLine = 22
-; Folding = BAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
+; CursorPosition = 370
+; FirstLine = 42
+; Folding = BAAAAgDAAAAAAAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
 ; EnableXP
 ; DPIAware

@@ -1443,12 +1443,10 @@ CompilerEndIf
 CompilerIf 1
   ;{ AI
   
-  CompilerIf #PB_Compiler_IsMainFile
-    Structure DataSet
-      Array Input.d(0)
-      Array Trainingsoutput.d(0)
-    EndStructure
-  CompilerEndIf
+  Structure DataSet
+    Array Input.d(0)
+    Array Trainingsoutput.d(0)
+  EndStructure
   
   Structure Layer
     Array Neurons.d(0)
@@ -2104,7 +2102,7 @@ CompilerIf 1
     NewList IgnoreButtonCollision.i()
     selection.SelType
     lastsselection.SelType
-    MainWindow = OpenWindow(#PB_Any ,0,0,ImageWidth(image),ImageHeight(image),"Image Pixel Pattern Creator",#PB_Window_ScreenCentered | #PB_Window_SystemMenu)
+    MainWindow = OpenWindow(#PB_Any ,0,0,ImageWidth(image),ImageHeight(image),"Image Pixel Pattern Creator",#PB_Window_ScreenCentered | #PB_Window_SizeGadget | #PB_Window_SystemMenu)
     If MainWindow
       ResizeWindow(MainWindow,#PB_Ignore,#PB_Ignore,#PB_Ignore,WindowHeight(MainWindow))
       button = ButtonGadget(#PB_Any,10,10,150,40,"ANALYSE") : AddElement(IgnoreButtonCollision()): IgnoreButtonCollision() = button
@@ -5687,8 +5685,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 892
-; FirstLine = 51
-; Folding = BAAAAAEAAAAgIAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAg
+; CursorPosition = 2111
+; FirstLine = 77
+; Folding = AAAAAAAAAAAAAAAAIAAGAACAAAAAAAAAAAAAAAAAAAAAAw
 ; EnableXP
 ; DPIAware

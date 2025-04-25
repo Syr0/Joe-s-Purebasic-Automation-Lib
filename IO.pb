@@ -178,6 +178,20 @@ CompilerIf 1
     EndIf
     
   EndProcedure
+  Procedure IO_Set_SendVirtualKey(VK,c=#KEYEVENTF_KEYUP)
+    Protected input.INPUT
+    input\type = #INPUT_KEYBOARD
+    input\ki\wVk = VK
+    input\ki\wScan = 0
+    input\ki\dwFlags = 0
+    input\ki\time = 0
+    input\ki\dwExtraInfo = 0
+    SendInput_(1, @input, SizeOf(INPUT))
+  
+    ; Keyup (Loslassen)
+    input\ki\dwFlags = #KEYEVENTF_KEYUP
+    SendInput_(1, @input, SizeOf(INPUT))
+  EndProcedure
   ;}
   
   ;{ Keyboard And Mouse Input Detection
@@ -245,10 +259,11 @@ CompilerIf 1
     ProcedureReturn CallNextHookEx_(0, nCode, wParam, lParam)
   EndProcedure
   Procedure IO_Get_Keyboard_StartHook(CallbackProcedure) ;TODO NEEDS AN OPEN WINDOW FOR EVENT HANDLEING!
-    hhkLLMouse = SetWindowsHookEx_(#WH_KEYBOARD_LL, CallbackProcedure, GetModuleHandle_(0), 0)
+    hookhandle = SetWindowsHookEx_(#WH_KEYBOARD_LL, CallbackProcedure, GetModuleHandle_(0), 0)
+    ProcedureReturn hookhandle
   EndProcedure
-  Procedure IO_Get_Keyboard_StopHook()
-    UnhookWindowsHookEx_(hhkLLMouse)
+  Procedure IO_Get_Keyboard_StopHook(hookhandle)
+    UnhookWindowsHookEx_(hookhandle)
   EndProcedure
   
   ;{ Example
@@ -5684,9 +5699,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.12 LTS (Windows - x64)
-; CursorPosition = 2111
-; FirstLine = 77
-; Folding = AAAAAAAAAAAAAAAAIAAGAACAAAAAAAAAAAAAAAAAAAAAAw
+; IDE Options = PureBasic 6.12 LTS (Linux - x64)
+; CursorPosition = 194
+; FirstLine = 14
+; Folding = BAEEQAAAAAAAAAAAQAAEACAAAAAAAAAAAAAAAAAAAAAAAg
 ; EnableXP
 ; DPIAware

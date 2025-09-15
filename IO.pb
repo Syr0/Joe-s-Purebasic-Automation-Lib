@@ -1820,13 +1820,13 @@ CompilerIf 1
     ProcedureReturn BMPHandle 
   EndProcedure 
   Procedure IO_Get_ScreenShotFromDesktop(x=0,y=0,w=-1,h=-1)
-    img = CreateImage(#PB_Any,DesktopWidth(0)-40,DesktopHeight(0))
+    img = CreateImage(#PB_Any,DesktopWidth(0),DesktopHeight(0))
     hDC = StartDrawing(ImageOutput(img))
     If w = -1 
       w = DesktopWidth(0)
     EndIf
     If h = -1
-      h = DesktopHeight(0)-40
+      h = DesktopHeight(0)
     EndIf
     
     If hDC
@@ -2259,17 +2259,17 @@ CompilerIf 1
   EndProcedure
   
   Procedure IO_Set_DrawRectangleOnScreen(x,y,w,h,Color,Framewidth=2,IsSticky=1)
-  win = OpenWindow(#PB_Any,x,y,w,h,"",#PB_Window_BorderLess)
-    IO_Set_TransparentWindowColor(win, 1,#Black)
-    StickyWindow(win,IsSticky)
-    
-    img = CreateImage(#PB_Any,w,h,32)
-    StartDrawing(ImageOutput(img))
-      Box(FrameWidth,0,w-2*FrameWidth,FrameWidth,Color)
-      Box(FrameWidth,h-FrameWidth,w-2*FrameWidth,h-FrameWidth,Color)
-      Box(0,                   0,FrameWidth,h,Color)
-      Box(w-FrameWidth,0,FrameWidth,h,Color)
-    StopDrawing()
+    win = OpenWindow(#PB_Any,x,y,w,h,"",#PB_Window_BorderLess)
+      IO_Set_TransparentWindowColor(win, 1,#Black)
+      StickyWindow(win,IsSticky)
+      
+      img = CreateImage(#PB_Any,w,h,32)
+      StartDrawing(ImageOutput(img))
+        Box(FrameWidth,0,w-2*FrameWidth,FrameWidth,Color)
+        Box(FrameWidth,h-FrameWidth,w-2*FrameWidth,h-FrameWidth,Color)
+        Box(0,                   0,FrameWidth,h,Color)
+        Box(w-FrameWidth,0,FrameWidth,h,Color)
+      StopDrawing()
     
     imgg = ImageGadget(#PB_Any,0,0,w, h,ImageID(img))
 
@@ -3385,7 +3385,7 @@ CompilerEndIf
 CompilerIf 1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
-    Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.3.0.20221214.exe" ; Last update: 29.07.2022
+    Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.4.0.20240519-1-ga5ff320e.exe" ; Last update: 29.07.2022
     DownloadSize = 56237870
     
     Download = ReceiveHTTPFile(Downloadlink, GetTemporaryDirectory()+"TesseractInstaller.exe",#PB_HTTP_Asynchronous)
@@ -3481,7 +3481,7 @@ CompilerIf 1
   ;}
   
   ;{ OCR Use Tesseract
-  Global TesseractExe.s = GetCurrentDirectory()+"Tesseract\tesseract.exe"
+  Global TesseractExe.s = GetCurrentDirectory()+"Tesseract\tesseract.exe" ; <- note this!
   Global OCRMutex = CreateMutex()
   Global NewMap OCRStrings.s()
   Global NewMap OCRWatches()
@@ -5735,7 +5735,7 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
 CompilerEndIf
 ; IDE Options = PureBasic 6.21 (Windows - x64)
 ; CursorPosition = 5734
-; FirstLine = 5709
+; FirstLine = 5707
 ; Folding = -----------------------------------------------
 ; EnableXP
 ; DPIAware

@@ -2280,7 +2280,10 @@ CompilerIf 1
 ;   
 ;   Repeat
 ;     WaitWindowEvent(1)
-;     SendMessage_(WindowID(rectangle), #WM_SYSCOMMAND, #SC_MOVE + #HTCAPTION, 0)
+;     If event = #WM_LBUTTONDOWN
+;       ReleaseCapture_()
+;       SendMessage_(WindowID(rectangle), #WM_SYSCOMMAND, #SC_MOVE + #HTCAPTION, 0)
+;     EndIf
 ;   ForEver
 EndProcedure
 
@@ -5731,8 +5734,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.21 (Windows - x64)
-; CursorPosition = 5731
-; FirstLine = 5706
+; CursorPosition = 5734
+; FirstLine = 5709
 ; Folding = -----------------------------------------------
 ; EnableXP
 ; DPIAware

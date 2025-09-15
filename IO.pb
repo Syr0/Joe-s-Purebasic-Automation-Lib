@@ -23,6 +23,10 @@ ExamineDesktops()
 ;Unfortunately, a structure needs to be define before calling a Procedure - so alot of memory is used
 ;Even if all those functions are not used. Be smart and turn off unused features before you compile.
 
+;Recommended compiler options:
+; +Threadsafe
+; +DPI-aware
+
 ;There are three different Prefixes:
 ;IO_Set_xxx()
 ;IO_Get_xxx()
@@ -266,6 +270,42 @@ CompilerIf 1
     UnhookWindowsHookEx_(hookhandle)
   EndProcedure
   
+  ;{ Systemwide Hotkeys
+  
+  Global IO_Get_HotkeyEvent = 0
+  Procedure IO_Check_Hotkey_Callback(hWnd, uMsg, wParam, lParam)
+    If uMsg = #WM_HOTKEY
+      IO_Get_HotkeyEvent = wParam
+      ProcedureReturn 0
+    EndIf
+    ProcedureReturn #PB_ProcessPureBasicEvents
+  EndProcedure
+  Procedure IO_Set_Hotkey(keyID,*hWnd,Key,Modifiers)
+    If keyId = #PB_Any
+     Static ID
+     ID+1
+   Else
+     ID = keyID
+   EndIf
+     If RegisterHotKey_(*hWnd,ID,Modifiers,Key)=0
+       ProcedureReturn -1
+     EndIf
+     SetWindowCallback(@IO_Check_Hotkey_Callback())
+     ProcedureReturn ID
+   EndProcedure
+   
+  ;Example
+;    
+;    AddWindowHotkey=IO_Set_Hotkey(#PB_Any,WindowID(firstwindow),#VK_X,#MOD_CONTROL)  
+;    Repeat
+;      If IO_Get_HotkeyEvent
+;        If IO_Get_HotkeyEvent = AddWindowHotkey
+;          AddOcrWindow()
+;        EndIf
+;        IO_Get_HotkeyEvent = 0 ; <-- important to not trigger infinite!
+;      EndIf
+;   ForEver
+  ;}
   ;{ Example
   ; OpenWindow(#PB_Any, 0, 0, 1, 1, "", #PB_Window_Invisible)
   ; IO_Get_Mouse_StartHook(@IO_Get_Mouse_ExampleHookCallback())
@@ -2259,7 +2299,7 @@ CompilerIf 1
   EndProcedure
   
   Procedure IO_Set_DrawRectangleOnScreen(x,y,w,h,Color,Framewidth=2,IsSticky=1)
-    win = OpenWindow(#PB_Any,x,y,w,h,"",#PB_Window_BorderLess)
+    win = OpenWindow(#PB_Any,x,y,DesktopUnscaledX(w),DesktopUnscaledY(h),"",#PB_Window_BorderLess)
       IO_Set_TransparentWindowColor(win, 1,#Black)
       StickyWindow(win,IsSticky)
       
@@ -2271,8 +2311,7 @@ CompilerIf 1
         Box(w-FrameWidth,0,FrameWidth,h,Color)
       StopDrawing()
     
-    imgg = ImageGadget(#PB_Any,0,0,w, h,ImageID(img))
-
+      imgg = ImageGadget(#PB_Any,0,0,w, h,ImageID(img))
   ProcedureReturn win
   
   ;Example
@@ -3481,7 +3520,7 @@ CompilerIf 1
   ;}
   
   ;{ OCR Use Tesseract
-  Global TesseractExe.s = GetCurrentDirectory()+"Tesseract\tesseract.exe" ; <- note this!
+  Global TesseractExe.s = "C:\Program Files\Tesseract-OCR\tesseract.exe" ; <- note this!
   Global OCRMutex = CreateMutex()
   Global NewMap OCRStrings.s()
   Global NewMap OCRWatches()
@@ -3494,6 +3533,22 @@ CompilerIf 1
     w.i
     h.i
   EndStructure;}
+  Procedure.s IO_get_OCR_Text(image)
+    Uniquename.s = Str(image)
+    SaveImage(image,GetCurrentDirectory()+Uniquename+".png",#PB_ImagePlugin_PNG)
+    
+    prog = RunProgram(TesseractExe,Chr(34)+GetCurrentDirectory()+Uniquename+".png"+Chr(34)+" "+Chr(34)+GetCurrentDirectory()+Uniquename+Chr(34),GetCurrentDirectory(),#PB_Program_Hide | #PB_Program_Wait)
+    DeleteFile(GetCurrentDirectory()+Uniquename+".png")
+    If GetCurrentDirectory()+Uniquename+".txt"
+      f = ReadFile(#PB_Any,GetCurrentDirectory()+Uniquename+".txt")
+      While Not Eof(f)
+        ocrtext.s + ReadString(f)
+      Wend
+      CloseFile(f)
+    EndIf
+    DeleteFile(GetCurrentDirectory()+Uniquename+".txt")
+    ProcedureReturn ocrtext
+  EndProcedure
   
   Procedure IO_Check_OCR(*Parameter.OCRStruct)
     Uniquename.s = Str(*Parameter\x)+Str(*Parameter\y)+Str(*Parameter\h)+Str(*Parameter\w)
@@ -5729,13 +5784,108 @@ CompilerIf 1
   
 CompilerEndIf
 
+;--------------------------;
+;         Examples         ;
+;--------------------------;
+
+;{ OCR with Frames on Screen
+; XIncludeFile "io.pb"
+; TesseractExe = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+; 
+; Enumeration
+;   #addNewWindow
+; EndEnumeration
+; 
+; Structure rectangleparameters
+;   frame.ocrstruct
+;   FrameWidth.i
+;   mutex.i
+;   hwnd.i
+;   Result.s
+;   ImageInFrame.i
+; EndStructure
+; 
+; Global NewList OCR_Window.rectangleparameters()
+; 
+; Procedure AddOcrWindow()
+;   
+;   AddElement(OCR_Window())
+;   OCR_Window()\frame\x = 100
+;   OCR_Window()\frame\y = 100
+;   OCR_Window()\frame\h = 100
+;   OCR_Window()\frame\w = 200
+;   OCR_Window()\FrameWidth = 20
+;   OCR_Window()\mutex = CreateMutex()
+;   OCR_Window()\hwnd = IO_Set_DrawRectangleOnScreen(OCR_Window()\frame\x,
+;                                                    OCR_Window()\frame\y,
+;                                                    OCR_Window()\frame\w,
+;                                                    OCR_Window()\frame\h,
+;                                                    RGB(200+Random(55),200+Random(55),200+Random(55)),
+;                                                    OCR_Window()\FrameWidth,
+;                                                    1)
+;   ProcedureReturn OCR_Window()\hwnd
+; EndProcedure
+; 
+; Procedure OCR_Background(*parameters.rectangleparameters)
+;     result.s = IO_get_OCR_Text(*parameters\ImageInFrame)
+;     If result <> *parameters\Result
+;       *parameters\Result = result
+;     EndIf
+;   UnlockMutex(*parameters\mutex)
+; EndProcedure
+; 
+; ;Inital window
+; firstwindow = AddOcrWindow()
+; AddWindowHotkey=IO_Set_Hotkey(#PB_Any,WindowID(firstwindow),#VK_X,#MOD_CONTROL)  
+; Repeat
+;   If IsImage(Screenshot)
+;     FreeImage(Screenshot)
+;   EndIf
+;   Screenshot = IO_Get_ScreenShotFromDesktop()
+;   ForEach OCR_Window()
+;     If TryLockMutex(OCR_Window()\mutex)
+;       Debug OCR_Window()\Result
+;       If IsImage(OCR_Window()\ImageInFrame)
+;         FreeImage(OCR_Window()\ImageInFrame)
+;       EndIf
+;       OCR_Window()\ImageInFrame = GrabImage(Screenshot,#PB_Any,
+;                                             DesktopScaledX(OCR_Window()\frame\x)+OCR_Window()\FrameWidth,
+;                                             DesktopScaledY(OCR_Window()\frame\y)+OCR_Window()\FrameWidth,
+;                                             OCR_Window()\frame\w-2*OCR_Window()\FrameWidth,
+;                                             OCR_Window()\frame\h-2*OCR_Window()\FrameWidth)
+;        CreateThread(@OCR_Background(),OCR_Window())
+;     EndIf
+;   Next
+;   
+;   event = WaitWindowEvent(1)
+;   If IO_Get_HotkeyEvent
+;     If IO_Get_HotkeyEvent = AddWindowHotkey
+;       AddOcrWindow()
+;     EndIf
+;     IO_Get_HotkeyEvent = 0
+;   EndIf
+;   
+;   If event = #WM_LBUTTONDOWN
+;     activeWindow = GetActiveWindow()
+;     ReleaseCapture_()
+;     SendMessage_(WindowID(activeWindow), #WM_SYSCOMMAND, #SC_MOVE + #HTCAPTION, 0)
+;     ForEach OCR_Window()
+;       If OCR_Window()\hwnd = activeWindow
+;         OCR_Window()\frame\x = WindowX(activeWindow)
+;         OCR_Window()\frame\y = WindowY(activeWindow)
+;         Break
+;       EndIf
+;     Next
+;   EndIf
+; ForEver
+;}
 
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.21 (Windows - x64)
-; CursorPosition = 5734
-; FirstLine = 5707
-; Folding = -----------------------------------------------
+; CursorPosition = 5884
+; FirstLine = 5848
+; Folding = ------------------------------------------------
 ; EnableXP
 ; DPIAware

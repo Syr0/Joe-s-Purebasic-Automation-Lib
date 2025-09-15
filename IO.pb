@@ -3424,8 +3424,8 @@ CompilerEndIf
 CompilerIf 1
   ;{ OCR-Install Tesseract
   Procedure IO_Set_DownloadTesseract()
-    Downloadlink.s = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.4.0.20240519-1-ga5ff320e.exe" ; Last update: 29.07.2022
-    DownloadSize = 56237870
+    Downloadlink.s = "https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/tesseract-ocr-w64-setup-5.5.0.20241111.exe" ; Last update: 15.09.2025
+    DownloadSize = 21385216
     
     Download = ReceiveHTTPFile(Downloadlink, GetTemporaryDirectory()+"TesseractInstaller.exe",#PB_HTTP_Asynchronous)
     Progresswindow = OpenWindow(#PB_Any,DesktopWidth(0)/2-100,200,200,40,"Tesseract Installation",#PB_Window_BorderLess)
@@ -5805,16 +5805,20 @@ CompilerEndIf
 ;   ImageInFrame.i
 ; EndStructure
 ; 
-; Global NewList OCR_Window.rectangleparameters()
-; 
-; Procedure AddOcrWindow()
+; Global DefaultParameters.rectangleparameters
+; DefaultParameters\frame\x = 100
+; DefaultParameters\frame\y = 100
+; DefaultParameters\frame\h = 100
+; DefaultParameters\frame\w = 200
+; DefaultParameters\FrameWidth = 20
 ;   
-;   AddElement(OCR_Window())
-;   OCR_Window()\frame\x = 100
-;   OCR_Window()\frame\y = 100
-;   OCR_Window()\frame\h = 100
-;   OCR_Window()\frame\w = 200
-;   OCR_Window()\FrameWidth = 20
+; NewList OCR_Window.rectangleparameters()
+; 
+; Procedure AddOcrWindow(List OCR_Window.rectangleparameters(),initialize=0)
+;   
+;   If initialize
+;     CopyStructure(DefaultParameters,OCR_Window(),rectangleparameters)
+;   EndIf
 ;   OCR_Window()\mutex = CreateMutex()
 ;   OCR_Window()\hwnd = IO_Set_DrawRectangleOnScreen(OCR_Window()\frame\x,
 ;                                                    OCR_Window()\frame\y,
@@ -5834,10 +5838,40 @@ CompilerEndIf
 ;   UnlockMutex(*parameters\mutex)
 ; EndProcedure
 ; 
+; 
+; Procedure LoadWindows(List OCR_Window.rectangleparameters())
+;   If FileSize(GetCurrentDirectory()+"config.json") > 0
+;     json =LoadJSON(#PB_Any,GetCurrentDirectory()+"config.json")
+;     ExtractJSONList(JSONValue(json),OCR_Window())
+;     
+;     ForEach OCR_Window()
+;       lastwindowhwnd = AddOcrWindow(OCR_Window())
+;     Next
+;     ProcedureReturn lastwindowhwnd
+;   Else
+;     ProcedureReturn lastwindowhwnd
+;   EndIf
+;   
+; EndProcedure
+; Procedure SaveWindows(List OCR_Window.rectangleparameters())
+;   If CreateJSON(0)
+;     InsertJSONList(JSONValue(0),OCR_Window())
+;     SaveJSON(0,GetCurrentDirectory()+"config.json")
+;     FreeJSON(0)
+;   EndIf
+; EndProcedure
+;   
 ; ;Inital window
-; firstwindow = AddOcrWindow()
+; firstwindow = LoadWindows(OCR_Window()) 
+; If Not firstwindow
+;   AddElement(OCR_Window())
+;   firstwindow = AddOcrWindow(OCR_Window(),1)
+; EndIf
+; 
 ; AddWindowHotkey=IO_Set_Hotkey(#PB_Any,WindowID(firstwindow),#VK_X,#MOD_CONTROL)  
-; Repeat
+; 
+; 
+; Repeat;{
 ;   If IsImage(Screenshot)
 ;     FreeImage(Screenshot)
 ;   EndIf
@@ -5860,7 +5894,8 @@ CompilerEndIf
 ;   event = WaitWindowEvent(1)
 ;   If IO_Get_HotkeyEvent
 ;     If IO_Get_HotkeyEvent = AddWindowHotkey
-;       AddOcrWindow()
+;       AddOcrWindow(OCR_Window(),1)
+;       SaveWindows(OCR_Window())
 ;     EndIf
 ;     IO_Get_HotkeyEvent = 0
 ;   EndIf
@@ -5873,19 +5908,20 @@ CompilerEndIf
 ;       If OCR_Window()\hwnd = activeWindow
 ;         OCR_Window()\frame\x = WindowX(activeWindow)
 ;         OCR_Window()\frame\y = WindowY(activeWindow)
+;         SaveWindows(OCR_Window())
 ;         Break
 ;       EndIf
 ;     Next
-;   EndIf
-; ForEver
+;   EndIf ;}
+; ForEver 
 ;}
 
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.21 (Windows - x64)
-; CursorPosition = 5884
-; FirstLine = 5848
+; CursorPosition = 5920
+; FirstLine = 5898
 ; Folding = ------------------------------------------------
 ; EnableXP
 ; DPIAware

@@ -1756,6 +1756,9 @@ CompilerIf 1
       Data.b $95, $8A, $00, $60, $97, $C9, $A0, $90
     EndDataSection
   EndProcedure
+  Procedure IO_Set_WindowMoveByDraggingAnywhere(WindowID) ;Must be in the event loop, called on every frame
+    SendMessage_(WindowID, #WM_SYSCOMMAND, #SC_MOVE + #HTCAPTION, 0) 
+  EndProcedure
   ;}
   
   ;{ Visual Output
@@ -1845,6 +1848,7 @@ CompilerIf 1
     StartDrawing(ImageOutput(Id)) 
     DrawImage(ImageID(BMPHandle),0,0) 
     StopDrawing()
+    FreeImage(BMPHandle)
     ProcedureReturn Id
   EndProcedure 
   Procedure IO_Get_ColorFromImage (image, *Position.POINT)
@@ -2253,6 +2257,33 @@ CompilerIf 1
       ForEver
     EndIf
   EndProcedure
+  
+  Procedure IO_Set_DrawRectangleOnScreen(x,y,w,h,Color,Framewidth=2,IsSticky=1)
+  win = OpenWindow(#PB_Any,x,y,w,h,"",#PB_Window_BorderLess)
+    IO_Set_TransparentWindowColor(win, 1,#Black)
+    StickyWindow(win,IsSticky)
+    
+    img = CreateImage(#PB_Any,w,h,32)
+    StartDrawing(ImageOutput(img))
+      Box(FrameWidth,0,w-2*FrameWidth,FrameWidth,Color)
+      Box(FrameWidth,h-FrameWidth,w-2*FrameWidth,h-FrameWidth,Color)
+      Box(0,                   0,FrameWidth,h,Color)
+      Box(w-FrameWidth,0,FrameWidth,h,Color)
+    StopDrawing()
+    
+    imgg = ImageGadget(#PB_Any,0,0,w, h,ImageID(img))
+
+  ProcedureReturn win
+  
+  ;Example
+;   rectangle = IO_Set_DrawRectangleOnScreen(50,50,200,200,#Yellow,20,1)
+;   
+;   Repeat
+;     WaitWindowEvent(1)
+;     SendMessage_(WindowID(rectangle), #WM_SYSCOMMAND, #SC_MOVE + #HTCAPTION, 0)
+;   ForEver
+EndProcedure
+
   Procedure IO_Set_Editor_MakeEditable(GadgetID,EditorGadget)
     SendMessage_(GadgetID, #EM_SETTEXTMODE, #TM_RICHTEXT, 0)
   EndProcedure
@@ -5699,9 +5730,9 @@ CompilerEndIf
 CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
-; IDE Options = PureBasic 6.12 LTS (Linux - x64)
-; CursorPosition = 194
-; FirstLine = 14
-; Folding = BAEEQAAAAAAAAAAAQAAEACAAAAAAAAAAAAAAAAAAAAAAAg
+; IDE Options = PureBasic 6.21 (Windows - x64)
+; CursorPosition = 5731
+; FirstLine = 5706
+; Folding = -----------------------------------------------
 ; EnableXP
 ; DPIAware

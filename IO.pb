@@ -293,6 +293,10 @@ CompilerIf 1
      SetWindowCallback(@IO_Check_Hotkey_Callback())
      ProcedureReturn ID
    EndProcedure
+   Procedure IO_Set_Hotkey_Release(*hwnd,keyID)
+     UnregisterHotKey_(*hWnd,ID)
+     SetWindowCallback(0)
+   EndProcedure
    
   ;Example
 ;    
@@ -1746,8 +1750,13 @@ CompilerIf 1
   ;}
   
   ;{ Windowing
+  Procedure IO_Set_TransparentWindowByHwnd(hwnd)
+      exStyle = GetWindowLong_(hwnd, #GWL_EXSTYLE)
+    SetWindowLong_(hwnd, #GWL_EXSTYLE, exStyle | #WS_EX_LAYERED)
+    SetLayeredWindowAttributes_(hwnd, 0, 180, #LWA_ALPHA)
+  EndProcedure
+
   Procedure IO_Set_TransparentWindow(PurebasicWindowHandle, alpha.i);for best results, make it borderless!
-    
     If IsWindow(PurebasicWindowHandle)
       Protected WindowID = WindowID(PurebasicWindowHandle)
       SetWindowLongPtr_(WindowID,#GWL_EXSTYLE,#WS_EX_LAYERED)
@@ -1771,7 +1780,7 @@ CompilerIf 1
       SendMessage_(hwnd,#WM_SETICON,1,Icon2Bytes) 
     EndIf
   EndProcedure
-  Procedure IO_Set_HideFromTaskBar(WindowID,Flag.l)
+  Procedure IO_Set_HideFromTaskBar(hwnd,Flag.l)
     Protected TBL.ITaskbarList
     CoInitialize_(0)
     If CoCreateInstance_(?CLSID_TaskBarList, 0, 1, ?IID_ITaskBarList, @TBL) = #S_OK
@@ -3539,7 +3548,7 @@ CompilerIf 1
     
     prog = RunProgram(TesseractExe,Chr(34)+GetCurrentDirectory()+Uniquename+".png"+Chr(34)+" "+Chr(34)+GetCurrentDirectory()+Uniquename+Chr(34),GetCurrentDirectory(),#PB_Program_Hide | #PB_Program_Wait)
     DeleteFile(GetCurrentDirectory()+Uniquename+".png")
-    If GetCurrentDirectory()+Uniquename+".txt"
+    If FileSize(GetCurrentDirectory()+Uniquename+".txt") > 0
       f = ReadFile(#PB_Any,GetCurrentDirectory()+Uniquename+".txt")
       While Not Eof(f)
         ocrtext.s + ReadString(f)
@@ -5920,8 +5929,8 @@ CompilerIf Not #PB_Compiler_IsIncludeFile
   Debug "Only use me as include"
 CompilerEndIf
 ; IDE Options = PureBasic 6.21 (Windows - x64)
-; CursorPosition = 5920
-; FirstLine = 5898
+; CursorPosition = 5929
+; FirstLine = 5911
 ; Folding = ------------------------------------------------
 ; EnableXP
 ; DPIAware
